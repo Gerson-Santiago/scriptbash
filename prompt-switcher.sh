@@ -1,53 +1,44 @@
 #!/bin/bash
 
 # Define cor para o Gum
-COLOR="#00f2ea" # Um ciano bonito
+COLOR="#00f2ea"
 
 echo "Escolha o visual do seu terminal:"
 
-# Mostra o menu com Gum
 CHOICE=$(gum choose --cursor.foreground="$COLOR" \
     "1. Normal (Bash Padrão)" \
-    "2. Git Nativo (Leve)" \
+    "2. Git Nativo (Seu Estilo)" \
     "3. Starship (Moderno)")
 
 case $CHOICE in
     "1. Normal (Bash Padrão)")
-        # Remove ganchos do Starship se existirem
-        unset PROMPT_COMMAND
-        # Define o PS1 simples: usuario@host:pasta$
+        unset PROMPT_COMMAND # Desliga o Starship
         export PS1='\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
         clear
         echo "✅ Modo: Normal"
         ;;
         
-    "2. Git Nativo (Leve)")
-        # Remove ganchos do Starship
-        unset PROMPT_COMMAND
+    "2. Git Nativo (Seu Estilo)")
+        unset PROMPT_COMMAND # Desliga o Starship
         
-        # Carrega script do Git (tenta achar em locais comuns do Linux/WSL)
+        # Importa o script de prompt do git (Verifica locais comuns)
         if [ -f /usr/lib/git-core/git-sh-prompt ]; then
             source /usr/lib/git-core/git-sh-prompt
         elif [ -f ~/.git-prompt.sh ]; then
             source ~/.git-prompt.sh
         fi
+
+        # --- A CONFIGURAÇÃO QUE VOCÊ PEDIU ---
+        # \u=Verde, \w=Azul, Branch=Vermelha
+        export PS1='\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]$(__git_ps1 " (\033[31m%s\033[00m)")\$ '
         
-        # Configurações do Git
-        export GIT_PS1_SHOWDIRTYSTATE=1
-        export GIT_PS1_SHOWUNTRACKEDFILES=1
-        export GIT_PS1_SHOWUPSTREAM="auto"
-        export GIT_PS1_SHOWCOLORHINTS=1
-        
-        # Define o PS1 com a função do Git
-        export PS1='\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]$(__git_ps1 " (%s)")\$ '
         clear
-        echo "✅ Modo: Git Nativo"
+        echo "✅ Modo: Git Nativo (Estilo Personalizado)"
         ;;
         
     "3. Starship (Moderno)")
-        # Reinicia o Starship
         eval "$(starship init bash)"
         clear
-        # O Starship se anuncia sozinho, não precisa de echo
+        # Starship assume o controle
         ;;
 esac
