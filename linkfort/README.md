@@ -16,6 +16,34 @@ Este projeto realiza testes de latência DNS precisos utilizando `dig` e gera um
 
 ---
 
+## 📥 Instalação
+
+### 1. Pré-requisitos
+Antes de tudo, garanta que você tenha o Python 3 e o utilitário `dig` instalados.
+```bash
+sudo apt update
+sudo apt install python3 dnsutils -y
+```
+
+### 2. Clonar o Repositório
+Baixe o código fonte para sua máquina:
+```bash
+git clone https://github.com/Gerson-Santiago/scriptbash.git
+cd scriptbash/linkfort
+```
+> **Nota:** O projeto LinkFort faz parte do repositório `scriptbash`.
+
+### 3. Preparar o Ambiente
+Dê permissão de execução para o script principal.
+
+**Nota sobre Dependências Python:** Não é necessário instalar nada manualmente com `pip`. O LinkFort cria automaticamente um **Ambiente Virtual isolado** (`.venv`) e instala todas as bibliotecas necessárias (pandas, plotly, etc.) na primeira execução, mantendo seu sistema limpo.
+
+```bash
+chmod +x linkfort
+```
+
+---
+
 ## 🚀 Início Rápido
 
 O comando `linkfort` cuida de tudo: cria o ambiente virtual, instala libs, roda os testes e abre o navegador.
