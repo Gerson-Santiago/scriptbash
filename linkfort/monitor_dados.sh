@@ -9,6 +9,23 @@ DOMAINS=("google.com" "amazon.com" "facebook.com" "uol.com.br" "netflix.com" "ch
 
 # Mapa de DNS (Array associativo requer Bash 4+)
 declare -A DNS_MAP
+
+# Ordem de execução (Linkfort First)
+DNS_IPS=(
+    "138.97.220.58" # Linkfort_1
+    "138.97.220.62" # Linkfort_2
+    "138.97.220.57" # Linkfort_3
+    "138.97.220.60" # Linkfort_4
+    "138.97.220.65" # Linkfort_5
+    "138.97.220.66" # Linkfort_6
+    "138.97.220.69" # Linkfort_7
+    "138.97.220.70" # Linkfort_8
+    "8.8.8.8"       # Google_Pri
+    "8.8.4.4"       # Google_Sec
+    "1.1.1.1"       # Cloudflare_Pri
+    "1.0.0.1"       # Cloudflare_Sec
+)
+
 DNS_MAP["138.97.220.58"]="Linkfort_1"
 DNS_MAP["138.97.220.62"]="Linkfort_2"
 DNS_MAP["138.97.220.57"]="Linkfort_3"
@@ -47,21 +64,6 @@ echo "DNSs: ${DNS_IPS[@]}"
 echo "Domains: ${DOMAINS[@]}"
 echo "---------------------------------------"
 
-# Ordem de execução (Linkfort First)
-DNS_IPS=(
-    "138.97.220.58" # Linkfort_1
-    "138.97.220.62" # Linkfort_2
-    "138.97.220.57" # Linkfort_3
-    "138.97.220.60" # Linkfort_4
-    "138.97.220.65" # Linkfort_5
-    "138.97.220.66" # Linkfort_6
-    "138.97.220.69" # Linkfort_7
-    "138.97.220.70" # Linkfort_8
-    "8.8.8.8"       # Google_Pri
-    "8.8.4.4"       # Google_Sec
-    "1.1.1.1"       # Cloudflare_Pri
-    "1.0.0.1"       # Cloudflare_Sec
-)
 
 ITERATION=0
 while [ "$COUNT" -eq -1 ] || [ "$ITERATION" -lt "$COUNT" ]; do
@@ -75,17 +77,25 @@ while [ "$COUNT" -eq -1 ] || [ "$ITERATION" -lt "$COUNT" ]; do
             timestamp=$(date '+%Y-%m-%d %H:%M:%S')
             
             # Executa dig
-            # +noall deve vir antes de +stats
-            # TRIES=3 e TIMEOUT=2 para lidar com UDP loss ocasional
-            output=$(dig "@$ip" "$domain" +noall +stats +tries=3 +timeout=2 2>&1)
+            # Captura stats completos para extrair STATUS e QUERY TIME
+            output=$(dig "@$ip" "$domain" +stats +tries=2 +timeout=2 2>&1)
             
-            # Extrai tempo
+            # Extrai tempo (Query time: N msec)
             latency=$(echo "$output" | grep "Query time:" | awk '{print $4}')
             
-            status="OK"
+            # Extrai status (status: NOERROR, status: REFUSED, etc)
+            dig_status=$(echo "$output" | grep "status:" | awk '{print $6}' | sed 's/,//')
+
+            # Normalização de Status e Latência
             if [[ -z "$latency" ]]; then
-                latency="0" # Ou valor alto indicando erro
+                latency="0"
                 status="TIMEOUT"
+            else
+                if [[ "$dig_status" == "NOERROR" ]]; then
+                    status="OK"
+                else
+                    status="$dig_status"
+                fi
             fi
             
             # Escreve no CSV
