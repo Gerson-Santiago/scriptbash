@@ -1,4 +1,4 @@
-# 📡 Linkfort DNS Benchmark (v3.4)
+# 📡 Linkfort DNS Benchmark (v3.5)
 
 > **Ferramenta profissional de análise de DNS com Visual Premium.**
 > Desenvolvida para ambientes "Subhost" (Containers/WSL/VMs) com foco em precisão e estética.
@@ -7,12 +7,12 @@ Este projeto realiza testes de latência DNS precisos utilizando `dig` e gera um
 
 ---
 
-## ✨ Novidades da v3.4
-- **🛡️ Anti-Flood**: Sistema de coleta ajustado para não saturar roteadores domésticos.
-- **🎨 Design Premium**: Interface Dark Mode com Glassmorphism e fontes Google.
+## ✨ Novidades da v3.5 (Clean Architecture)
+- **🧱 Arquitetura Modular**: Código Python refatorado em pacote `src/` com separação de responsabilidades (Config, Data, Analytics).
+- **⚡ Dashboard Estático**: `dashboard.html` agora é 100% Client-Side, consumindo JSON dinâmico.
+- **🛡️ Git-Friendly**: Separação total entre Código (`.html`) e Dados (`.json`) para facilitar versionamento.
 - **🚀 Servidor Integrado**: Exibe o relatório automaticamente em `http://localhost:7777`.
 - **🏆 Ranking Inteligente**: Destaca os vencedores com medalhas e badges de score.
-- **🔴 Botão Ao Vivo**: Controle interativo de **Play/Pause** para atualização automática (Auto-Refresh) via UI.
 
 ---
 
@@ -46,46 +46,21 @@ chmod +x linkfort
 
 ## 🚀 Início Rápido
 
-O comando `linkfort` cuida de tudo: cria o ambiente virtual, instala libs, roda os testes e abre o navegador.
+> **📘 Guia Completo:** Para detalhes de todos os comandos e fluxo de dados, consulte [COMANDOS.md](COMANDOS.md).
 
-### Rodar um Teste Rápido
-Executa 1 rodada de testes e abre o dashboard.
-```bash
-./linkfort --test
-```
+### Comandos Essenciais
 
-### Rodar uma Coleta Estendida
-### Rodar uma Coleta Estendida
-Executa `N` rodadas para maior precisão estatística.
-```bash
-./linkfort 100        # Exemplo: roda 100 vezes
-# ou
-./linkfort --collect 100
-```
-> **⏳ Estimativa de Tempo:** O script calculará e avisará o tempo previsto. O servidor web abre automaticamente ao final.
+| Ação | Comando |
+| :--- | :--- |
+| **Monitorar (Live)** | `./linkfort --live` |
+| **Teste Rápido** | `./linkfort --test` |
+| **Resetar Tudo** | `./linkfort -r` |
+| **Coletar N vezes** | `./linkfort 50` |
 
-### Apenas Visualizar (Sem Coletar)
-Regenera o gráfico com os dados atuais e inicia o servidor.
-```bash
-./linkfort
-```
-
-### 🧹 Limpar Dados
-Apaga todo o histórico de testes e o dashboard, permitindo começar do zero.
-> **Nota de Segurança:** Não se preocupe em recriar arquivos. O próximo comando de coleta (ex: `./linkfort 50`) reconstruirá automaticamente tudo o que for necessário.
-
-```bash
-./linkfort --reset
-```
-
-### 🔴 Modo Ao Vivo (Recomendado)
-Executa a coleta em background e inicia o servidor web automaticamente em um único terminal.
-
-```bash
-./linkfort --live
-# Acesse http://localhost:7777 e ative o botão "AO VIVO" no topo.
-# Pressione Ctrl+C para encerrar tudo.
-```
+### 🧹 Limpeza (Reset)
+O comando `./linkfort -r` é vital para reiniciar testes. Ele:
+1. Encerra processos travados na porta 7777 (Server).
+2. Remove históricos (`csv`, `json`, `html`).
 
 ---
 

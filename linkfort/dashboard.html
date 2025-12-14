@@ -1,19 +1,19 @@
-
-    <!DOCTYPE html>
-    <html lang="pt-BR">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Linkfort DNS Intelligence v3.4</title>
-        
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linkfort DNS Intelligence v3.5 (Static)</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
-        
         :root {
             --bg-color: #0f172a;
             --card-bg: #1e293b;
             --text-color: #f8fafc;
             --accent-color: #38bdf8;
+            --success: #4ade80;
+            --danger: #f87171;
             --border-color: #334155;
             --subtle-color: #64748b;
         }
@@ -48,7 +48,7 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        
+
         /* Live Button Styles */
         .live-controls {
             display: flex;
@@ -112,17 +112,27 @@
             margin-top: 10px;
         }
         
-        .domains-list {
-            margin-top: 15px;
-            font-size: 0.8rem;
-            color: var(--accent-color);
-            background: rgba(56, 189, 248, 0.1);
-            padding: 8px 16px;
-            border-radius: 999px;
-            display: inline-block;
+        /* Stats Grid */
+        .global-stats {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--accent-color);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 20px;
         }
+
+        .stat-item { text-align: center; }
+        .stat-label { color: var(--subtle-color); font-size: 0.9rem; }
+        .stat-value { font-size: 1.5rem; font-weight: bold; color: var(--text-color); }
+        .stat-value.success { color: var(--success); }
+        .stat-value.accent { color: var(--accent-color); }
         
-        /* Cards */
+        /* Winners Section */
         .winners-section {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -137,19 +147,12 @@
             border-radius: 16px;
             padding: 24px;
             text-align: center;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: transform 0.2s;
         }
         
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
-            border-color: var(--accent-color);
-        }
+        .card:hover { transform: translateY(-5px); border-color: var(--accent-color); }
         
         .medal { font-size: 3rem; margin-bottom: 10px; }
-        
-        h3 { margin: 10px 0; font-size: 1.5rem; }
-        
         .ip { font-family: 'JetBrains Mono', monospace; color: var(--subtle-color); background: #0f172a; padding: 4px 8px; border-radius: 4px; display: inline-block; }
         
         .score-badge {
@@ -170,76 +173,41 @@
             padding-top: 15px;
             font-size: 0.9rem;
         }
-        
-        /* Section Titles */
+
+        /* Generic Table / Grid */
         h2 {
             border-left: 4px solid var(--accent-color);
             padding-left: 15px;
             margin-bottom: 20px;
-            color: var(--text-color);
         }
         
-        /* Table */
         .table-container {
             background: var(--card-bg);
             border-radius: 12px;
             overflow: hidden;
             border: 1px solid var(--border-color);
             margin-bottom: 40px;
+            overflow-x: auto;
         }
         
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        th, td {
-            padding: 16px;
-            text-align: left;
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        th {
-            background: #0f172a;
-            color: var(--subtle-color);
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.8rem;
-            letter-spacing: 0.05em;
-        }
-        
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th, td { padding: 16px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        th { background: #0f172a; color: var(--subtle-color); font-weight: 600; text-transform: uppercase; font-size: 0.8rem; }
         tr:last-child td { border-bottom: none; }
         tr:hover { background: rgba(56, 189, 248, 0.05); }
-        
-        /* Domain Grid */
-        .domain-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 15px;
-            margin-bottom: 40px;
-        }
-        
-        .domain-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .domain-name { font-weight: bold; font-size: 1.1rem; color: var(--accent-color); }
-        .winner-name { font-size: 0.9rem; color: var(--text-color); margin-top: 4px; }
-        .winner-lat { font-size: 0.85rem; color: var(--success); font-family: 'JetBrains Mono', monospace; }
-        
+
         /* Charts */
+        .charts-grid {
+            display: grid;
+            gap: 20px;
+        }
         .chart-container {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 20px;
+            min-height: 400px;
         }
         
         footer {
@@ -250,376 +218,194 @@
             padding-bottom: 20px;
         }
     </style>
-    
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="live-controls">
+                <button id="liveToggle" class="btn-live">
+                    <span class="indicator-dot"></span>
+                    <span id="statusText">...</span>
+                </button>
+            </div>
+            <h1>Linkfort DNS Intelligence</h1>
+            <div class="subtitle">Relatório de Performance de Rede • Gerado em <span id="generated-at">...</span></div>
+        </header>
         
-        <script>
-            document.addEventListener("DOMContentLoaded", function() {
-                const toggleBtn = document.getElementById("liveToggle");
-                const indicatorText = document.getElementById("statusText");
-                const REFRESH_INTERVAL = 5000;
-                let timer = null;
-                
-                // Chave storage corrigida
-                const STORAGE_KEY = "linkfort_live_mode_v2";
-                
-                // Verifica estado salvo (default: false se não existir)
-                let isLive = localStorage.getItem(STORAGE_KEY) === "true";
-                
-                function updateState() {
-                    if (isLive) {
-                        toggleBtn.classList.add("active");
-                        indicatorText.textContent = "AO VIVO (Autorefresh)";
-                        if (!timer) {
-                            console.log("Live mode: STARTED");
-                            timer = setInterval(() => window.location.reload(), REFRESH_INTERVAL);
-                        }
-                    } else {
-                        toggleBtn.classList.remove("active");
-                        indicatorText.textContent = "PAUSADO (Clique para ativar)";
-                        if (timer) {
-                            console.log("Live mode: STOPPED");
-                            clearInterval(timer);
-                            timer = null;
-                        }
+        <!-- Global Stats -->
+        <div class="global-stats" id="global-stats">
+            <div class="stat-item">
+                <div class="stat-label">Total Requests</div>
+                <div class="stat-value" id="stat-reqs">-</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Success Rate</div>
+                <div class="stat-value success" id="stat-success">-</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Avg Latency</div>
+                <div class="stat-value accent" id="stat-latency">- (ms)</div>
+            </div>
+        </div>
+
+        <section class="winners-section" id="ranking-cards">
+            <!-- Cards will be injected by JS -->
+            <div style="grid-column: 1/-1; text-align: center; color: var(--subtle-color);">Carregando dados...</div>
+        </section>
+        
+        <h2>🏆 Campeões por Site</h2>
+        <section class="table-container">
+            <table id="domain-table">
+                <thead>
+                    <tr><th>Domain</th><th>Best DNS</th><th>IP</th><th>Median Latency</th></tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </section>
+        
+        <h2>📊 Ranking Geral</h2>
+        <section class="table-container">
+            <table id="metrics-table">
+                <thead>
+                    <tr><th>DNS Name</th><th>IP</th><th>Requests</th><th>P95 (ms)</th><th>Mean (ms)</th><th>Median (ms)</th><th>CV (%)</th><th>Error (%)</th><th>Score</th></tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </section>
+        
+        <h2>📈 Análise Visual</h2>
+        <section class="charts-grid">
+            <div class="chart-container" id="chart-bar"></div>
+            <div class="chart-container" id="chart-box"></div>
+            <div class="chart-container" id="chart-scatter"></div>
+        </section>
+        
+        <footer>
+            Linkfort V3.5 • Powered by Plotly.js & Python
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // --- Live Control Logic ---
+            const toggleBtn = document.getElementById("liveToggle");
+            const indicatorText = document.getElementById("statusText");
+            const REFRESH_INTERVAL = 5000;
+            let timer = null;
+            const STORAGE_KEY = "linkfort_live_mode_v2";
+            let isLive = localStorage.getItem(STORAGE_KEY) === "true";
+            
+            function updateState() {
+                if (isLive) {
+                    toggleBtn.classList.add("active");
+                    indicatorText.textContent = "AO VIVO (Autorefresh)";
+                    if (!timer) {
+                        timer = setInterval(loadDashboardData, REFRESH_INTERVAL);
                     }
-                    localStorage.setItem(STORAGE_KEY, isLive);
+                } else {
+                    toggleBtn.classList.remove("active");
+                    indicatorText.textContent = "PAUSADO (Clique para ativar)";
+                    if (timer) {
+                        clearInterval(timer);
+                        timer = null;
+                    }
                 }
-                
-                toggleBtn.addEventListener("click", () => {
-                    isLive = !isLive;
-                    updateState();
-                });
-                
-                // Inicializa
+                localStorage.setItem(STORAGE_KEY, isLive);
+            }
+            
+            toggleBtn.addEventListener("click", () => {
+                isLive = !isLive;
                 updateState();
             });
-        </script>
-    
-    </head>
-    <body>
-        <div class="container">
-            <header>
-                <div class="live-controls">
-                    <button id="liveToggle" class="btn-live" title="Ativar/Desativar refresh automático">
-                        <span class="indicator-dot"></span>
-                        <span id="statusText">...</span>
-                    </button>
-                </div>
-                <h1>Linkfort DNS Intelligence</h1>
-                <div class="subtitle">Relatório de Performance de Rede • Gerado em 14/12/2025 18:26</div>
-                <div class="domains-list">🌐 Testados: amazon.com, bertioga.sp.gov.br, canva.com, chatgpt.com, facebook.com, gemini.google.com, google.com, netflix.com, sei.univesp.br, uol.com.br, youtube.com</div>
-            </header>
-            
-            
-    <div class="card" style="margin-bottom: 30px; border-left: 4px solid #38bdf8; text-align: left; display: flex; justify-content: space-around; align-items: center; flex-wrap: wrap;">
-        <div>
-            <div style="color: #64748b; font-size: 0.9rem;">Total Requests</div>
-            <div style="font-size: 1.5rem; font-weight: bold; color: #f8fafc">399</div>
-        </div>
-        <div>
-            <div style="color: #64748b; font-size: 0.9rem;">Success Rate</div>
-            <div style="font-size: 1.5rem; font-weight: bold; color: #4ade80">100.0%</div>
-        </div>
-         <div>
-            <div style="color: #64748b; font-size: 0.9rem;">Avg Latency</div>
-             <div style="font-size: 1.5rem; font-weight: bold; color: #38bdf8">24.5 ms</div>
-        </div>
-    </div>
-    
+            updateState();
 
-            <section class="winners-section">
+            // --- Data Loading Logic ---
+            async function loadDashboardData() {
+                try {
+                    const response = await fetch('dados.json?t=' + new Date().getTime());
+                    if (!response.ok) throw new Error("Erro ao carregar dados.json");
+                    const data = await response.json();
+                    renderDashboard(data);
+                } catch (e) {
+                    console.error("Falha na atualização:", e);
+                }
+            }
+
+            function renderDashboard(data) {
+                // 1. Metadata
+                document.getElementById('generated-at').textContent = data.metadata.generated_at;
+                document.getElementById('stat-reqs').textContent = data.metadata.total_requests;
+                document.getElementById('stat-success').textContent = data.metadata.success_rate + "%";
+                document.getElementById('stat-latency').textContent = data.metadata.avg_latency + " ms";
+
+                // 2. Ranking Cards (Top 3)
+                const medals = ["🥇", "🥈", "🥉"];
+                const cardsContainer = document.getElementById('ranking-cards');
+                let cardsHtml = "";
                 
-        <div class="card winner-card">
-            <div class="medal">🥇</div>
-            <h3>Linkfort_8</h3>
-            <p class="ip">138.97.220.70</p>
-            <div class="score-badge" style="background: #4ade80">Score: 88.6</div>
-            <div class="stats-grid">
-                <div><span>Median</span><br><strong>11.0ms</strong></div>
-                <div><span>Mean</span><br><strong>16.39ms</strong></div>
-            </div>
-        </div>
-        
-        <div class="card winner-card">
-            <div class="medal">🥈</div>
-            <h3>Cloudflare_Sec</h3>
-            <p class="ip">1.0.0.1</p>
-            <div class="score-badge" style="background: #4ade80">Score: 87.4</div>
-            <div class="stats-grid">
-                <div><span>Median</span><br><strong>10.0ms</strong></div>
-                <div><span>Mean</span><br><strong>14.33ms</strong></div>
-            </div>
-        </div>
-        
-        <div class="card winner-card">
-            <div class="medal">🥉</div>
-            <h3>Google_Sec</h3>
-            <p class="ip">8.8.4.4</p>
-            <div class="score-badge" style="background: #4ade80">Score: 82.8</div>
-            <div class="stats-grid">
-                <div><span>Median</span><br><strong>12.5ms</strong></div>
-                <div><span>Mean</span><br><strong>21.78ms</strong></div>
-            </div>
-        </div>
-        
-            </section>
-            
-            <h2>🏆 Campeões por Site</h2>
-            <section class="table-container">
-                <table class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th>Domain</th>
-      <th>Best DNS</th>
-      <th>IP</th>
-      <th>Median Latency</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>google.com</td>
-      <td>Linkfort_4</td>
-      <td>138.97.220.60</td>
-      <td>9.0 ms</td>
-    </tr>
-    <tr>
-      <td>amazon.com</td>
-      <td>Cloudflare_Sec</td>
-      <td>1.0.0.1</td>
-      <td>9.0 ms</td>
-    </tr>
-    <tr>
-      <td>facebook.com</td>
-      <td>Cloudflare_Sec</td>
-      <td>1.0.0.1</td>
-      <td>11.0 ms</td>
-    </tr>
-    <tr>
-      <td>uol.com.br</td>
-      <td>Linkfort_3</td>
-      <td>138.97.220.57</td>
-      <td>9.0 ms</td>
-    </tr>
-    <tr>
-      <td>netflix.com</td>
-      <td>Cloudflare_Pri</td>
-      <td>1.1.1.1</td>
-      <td>9.0 ms</td>
-    </tr>
-    <tr>
-      <td>chatgpt.com</td>
-      <td>Linkfort_6</td>
-      <td>138.97.220.66</td>
-      <td>9.0 ms</td>
-    </tr>
-    <tr>
-      <td>gemini.google.com</td>
-      <td>Cloudflare_Pri</td>
-      <td>1.1.1.1</td>
-      <td>10.0 ms</td>
-    </tr>
-    <tr>
-      <td>canva.com</td>
-      <td>Cloudflare_Pri</td>
-      <td>1.1.1.1</td>
-      <td>8.0 ms</td>
-    </tr>
-    <tr>
-      <td>sei.univesp.br</td>
-      <td>Google_Pri</td>
-      <td>8.8.8.8</td>
-      <td>8.0 ms</td>
-    </tr>
-    <tr>
-      <td>bertioga.sp.gov.br</td>
-      <td>Cloudflare_Sec</td>
-      <td>1.0.0.1</td>
-      <td>9.0 ms</td>
-    </tr>
-    <tr>
-      <td>youtube.com</td>
-      <td>Linkfort_8</td>
-      <td>138.97.220.70</td>
-      <td>9.0 ms</td>
-    </tr>
-  </tbody>
-</table>
-            </section>
-            
-            <h2>📊 Ranking Geral</h2>
-            <section class="table-container">
-                <table class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th>DNS Name</th>
-      <th>IP</th>
-      <th>Requests</th>
-      <th>P95 (ms)</th>
-      <th>Mean (ms)</th>
-      <th>Median (ms)</th>
-      <th>CV (%)</th>
-      <th>Error (%)</th>
-      <th>Score</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Linkfort_8</td>
-      <td>138.97.220.70</td>
-      <td>33</td>
-      <td>34.80</td>
-      <td>16.39</td>
-      <td>11.0</td>
-      <td>115.0</td>
-      <td>0.0</td>
-      <td>88.6</td>
-    </tr>
-    <tr>
-      <td>Cloudflare_Sec</td>
-      <td>1.0.0.1</td>
-      <td>33</td>
-      <td>40.40</td>
-      <td>14.33</td>
-      <td>10.0</td>
-      <td>117.2</td>
-      <td>0.0</td>
-      <td>87.4</td>
-    </tr>
-    <tr>
-      <td>Google_Sec</td>
-      <td>8.8.4.4</td>
-      <td>36</td>
-      <td>56.25</td>
-      <td>21.78</td>
-      <td>12.5</td>
-      <td>81.8</td>
-      <td>0.0</td>
-      <td>82.8</td>
-    </tr>
-    <tr>
-      <td>Linkfort_7</td>
-      <td>138.97.220.69</td>
-      <td>33</td>
-      <td>61.60</td>
-      <td>22.48</td>
-      <td>13.0</td>
-      <td>95.9</td>
-      <td>0.0</td>
-      <td>81.4</td>
-    </tr>
-    <tr>
-      <td>Linkfort_2</td>
-      <td>138.97.220.62</td>
-      <td>33</td>
-      <td>75.60</td>
-      <td>23.45</td>
-      <td>12.0</td>
-      <td>102.3</td>
-      <td>0.0</td>
-      <td>78.1</td>
-    </tr>
-    <tr>
-      <td>Linkfort_4</td>
-      <td>138.97.220.60</td>
-      <td>33</td>
-      <td>82.40</td>
-      <td>25.12</td>
-      <td>11.0</td>
-      <td>177.1</td>
-      <td>0.0</td>
-      <td>76.6</td>
-    </tr>
-    <tr>
-      <td>Linkfort_1</td>
-      <td>138.97.220.58</td>
-      <td>33</td>
-      <td>86.40</td>
-      <td>22.18</td>
-      <td>11.0</td>
-      <td>124.6</td>
-      <td>0.0</td>
-      <td>75.6</td>
-    </tr>
-    <tr>
-      <td>Linkfort_6</td>
-      <td>138.97.220.66</td>
-      <td>33</td>
-      <td>87.80</td>
-      <td>30.97</td>
-      <td>11.0</td>
-      <td>151.1</td>
-      <td>0.0</td>
-      <td>75.3</td>
-    </tr>
-    <tr>
-      <td>Linkfort_5</td>
-      <td>138.97.220.65</td>
-      <td>33</td>
-      <td>88.20</td>
-      <td>29.15</td>
-      <td>11.0</td>
-      <td>155.0</td>
-      <td>0.0</td>
-      <td>75.2</td>
-    </tr>
-    <tr>
-      <td>Linkfort_3</td>
-      <td>138.97.220.57</td>
-      <td>33</td>
-      <td>87.60</td>
-      <td>22.45</td>
-      <td>12.0</td>
-      <td>113.9</td>
-      <td>0.0</td>
-      <td>75.1</td>
-    </tr>
-    <tr>
-      <td>Cloudflare_Pri</td>
-      <td>1.1.1.1</td>
-      <td>33</td>
-      <td>139.80</td>
-      <td>29.76</td>
-      <td>11.0</td>
-      <td>209.9</td>
-      <td>0.0</td>
-      <td>62.3</td>
-    </tr>
-    <tr>
-      <td>Google_Pri</td>
-      <td>8.8.8.8</td>
-      <td>33</td>
-      <td>166.60</td>
-      <td>36.27</td>
-      <td>11.0</td>
-      <td>193.6</td>
-      <td>0.0</td>
-      <td>55.6</td>
-    </tr>
-  </tbody>
-</table>
-            </section>
-            
-            <h2>📈 Análise Visual</h2>
-            <section class="charts-grid">
-                <div class="chart-container">
-                    <div>                        <script type="text/javascript">window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
-        <script charset="utf-8" src="https://cdn.plot.ly/plotly-3.3.0.min.js" integrity="sha256-bO3dS6yCpk9aK4gUpNELtCiDeSYvGYnK7jFI58NQnHI=" crossorigin="anonymous"></script>                <div id="cb668147-776c-4065-9537-b7b1728100bd" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script type="text/javascript">                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("cb668147-776c-4065-9537-b7b1728100bd")) {                    Plotly.newPlot(                        "cb668147-776c-4065-9537-b7b1728100bd",                        [{"hovertemplate":"DNS Name=%{x}\u003cbr\u003eScore=%{marker.color}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"","marker":{"color":{"dtype":"f8","bdata":"ZmZmZmYmVkCamZmZmdlVQDMzMzMzs1RAmpmZmZlZVEBmZmZmZoZTQGZmZmZmJlNAZmZmZmbmUkAzMzMzM9NSQM3MzMzMzFJAZmZmZmbGUkBmZmZmZiZPQM3MzMzMzEtA"},"coloraxis":"coloraxis","pattern":{"shape":""}},"name":"","orientation":"v","showlegend":false,"text":{"dtype":"f8","bdata":"ZmZmZmYmVkCamZmZmdlVQDMzMzMzs1RAmpmZmZlZVEBmZmZmZoZTQGZmZmZmJlNAZmZmZmbmUkAzMzMzM9NSQM3MzMzMzFJAZmZmZmbGUkBmZmZmZiZPQM3MzMzMzEtA"},"textposition":"auto","x":["Linkfort_8","Cloudflare_Sec","Google_Sec","Linkfort_7","Linkfort_2","Linkfort_4","Linkfort_1","Linkfort_6","Linkfort_5","Linkfort_3","Cloudflare_Pri","Google_Pri"],"xaxis":"x","y":{"dtype":"f8","bdata":"ZmZmZmYmVkCamZmZmdlVQDMzMzMzs1RAmpmZmZlZVEBmZmZmZoZTQGZmZmZmJlNAZmZmZmbmUkAzMzMzM9NSQM3MzMzMzFJAZmZmZmbGUkBmZmZmZiZPQM3MzMzMzEtA"},"yaxis":"y","type":"bar"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"marker":{"line":{"color":"#283442"}},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#f2f5fa"},"error_y":{"color":"#f2f5fa"},"marker":{"line":{"color":"rgb(17,17,17)","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"marker":{"line":{"color":"#283442"}},"type":"scattergl"}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#A2B1C6","gridcolor":"#506784","linecolor":"#506784","minorgridcolor":"#506784","startlinecolor":"#A2B1C6"},"baxis":{"endlinecolor":"#A2B1C6","gridcolor":"#506784","linecolor":"#506784","minorgridcolor":"#506784","startlinecolor":"#A2B1C6"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#506784"},"line":{"color":"rgb(17,17,17)"}},"header":{"fill":{"color":"#2a3f5f"},"line":{"color":"rgb(17,17,17)"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"rgb(17,17,17)","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#f2f5fa"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"rgb(17,17,17)","plot_bgcolor":"rgb(17,17,17)","polar":{"bgcolor":"rgb(17,17,17)","angularaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"radialaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""}},"ternary":{"bgcolor":"rgb(17,17,17)","aaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"baxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"caxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"#283442","linecolor":"#506784","ticks":"","title":{"standoff":15},"zerolinecolor":"#283442","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"#283442","linecolor":"#506784","ticks":"","title":{"standoff":15},"zerolinecolor":"#283442","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3","gridwidth":2},"yaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3","gridwidth":2},"zaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3","gridwidth":2}},"shapedefaults":{"line":{"color":"#f2f5fa"}},"annotationdefaults":{"arrowcolor":"#f2f5fa","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"rgb(17,17,17)","landcolor":"rgb(17,17,17)","subunitcolor":"#506784","showland":true,"showlakes":true,"lakecolor":"rgb(17,17,17)"},"title":{"x":0.05},"updatemenudefaults":{"bgcolor":"#506784","borderwidth":0},"sliderdefaults":{"bgcolor":"#C8D4E3","borderwidth":1,"bordercolor":"rgb(17,17,17)","tickwidth":0},"mapbox":{"style":"dark"}}},"xaxis":{"anchor":"y","domain":[0.0,1.0],"title":{"text":"DNS Name"}},"yaxis":{"anchor":"x","domain":[0.0,1.0],"title":{"text":"Score"}},"coloraxis":{"colorbar":{"title":{"text":"Score"}},"colorscale":[[0.0,"#440154"],[0.1111111111111111,"#482878"],[0.2222222222222222,"#3e4989"],[0.3333333333333333,"#31688e"],[0.4444444444444444,"#26828e"],[0.5555555555555556,"#1f9e89"],[0.6666666666666666,"#35b779"],[0.7777777777777778,"#6ece58"],[0.8888888888888888,"#b5de2b"],[1.0,"#fde725"]]},"legend":{"tracegroupgap":0},"title":{"text":"Ranking de Performance (Score V3.0)"},"barmode":"relative","font":{"family":"Inter"},"paper_bgcolor":"rgba(0,0,0,0)","plot_bgcolor":"rgba(0,0,0,0)"},                        {"responsive": true}                    )                };            </script>        </div>
-                </div>
-                <div class="chart-container">
-                    <div>                        <script type="text/javascript">window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
-        <script charset="utf-8" src="https://cdn.plot.ly/plotly-3.3.0.min.js" integrity="sha256-bO3dS6yCpk9aK4gUpNELtCiDeSYvGYnK7jFI58NQnHI=" crossorigin="anonymous"></script>                <div id="3b2e4114-2469-4893-9ab7-83aeac16f327" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script type="text/javascript">                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("3b2e4114-2469-4893-9ab7-83aeac16f327")) {                    Plotly.newPlot(                        "3b2e4114-2469-4893-9ab7-83aeac16f327",                        [{"alignmentgroup":"True","boxpoints":"all","hovertemplate":"dns_name=%{x}\u003cbr\u003elatency_ms=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"Google_Sec","marker":{"color":"#636efa"},"name":"Google_Sec","notched":false,"offsetgroup":"Google_Sec","orientation":"v","showlegend":true,"x":["Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec"],"x0":" ","xaxis":"x","y":{"dtype":"i1","bdata":"MzYVCw0oDAxNCwoPEyM4CwoKCREsCgkKCQoQEgkOCAs5ECcK"},"y0":" ","yaxis":"y","type":"box"},{"alignmentgroup":"True","boxpoints":"all","hovertemplate":"dns_name=%{x}\u003cbr\u003elatency_ms=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"Cloudflare_Pri","marker":{"color":"#EF553B"},"name":"Cloudflare_Pri","notched":false,"offsetgroup":"Cloudflare_Pri","orientation":"v","showlegend":true,"x":["Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri"],"x0":" ","xaxis":"x","y":{"dtype":"i2","bdata":"CwAKAAwADQALAAsACgAIAAsADAANANsACQAMAAkACAAKAAoAGAAeADcBBwALAAoACQBXAAkACgAJAAgACQAmAAsA"},"y0":" ","yaxis":"y","type":"box"},{"alignmentgroup":"True","boxpoints":"all","hovertemplate":"dns_name=%{x}\u003cbr\u003elatency_ms=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"Linkfort_7","marker":{"color":"#00cc96"},"name":"Linkfort_7","notched":false,"offsetgroup":"Linkfort_7","orientation":"v","showlegend":true,"x":["Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7"],"x0":" ","xaxis":"x","y":{"dtype":"i1","bdata":"agsiCC0wDAoLDAoSHwsKHhYOCRQTCwguDgkNDgoJGVIK"},"y0":" ","yaxis":"y","type":"box"},{"alignmentgroup":"True","boxpoints":"all","hovertemplate":"dns_name=%{x}\u003cbr\u003elatency_ms=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"Linkfort_6","marker":{"color":"#ab63fa"},"name":"Linkfort_6","notched":false,"offsetgroup":"Linkfort_6","orientation":"v","showlegend":true,"x":["Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6"],"x0":" ","xaxis":"x","y":{"dtype":"i2","bdata":"OQAOAB8ADAAKADwACwBLAEIAOgAJAAsACgAMAAsACwAJAAoA\u002fwAKAAgACgAKAAkAEAANAGsACAAJAAoACAANADsA"},"y0":" ","yaxis":"y","type":"box"},{"alignmentgroup":"True","boxpoints":"all","hovertemplate":"dns_name=%{x}\u003cbr\u003elatency_ms=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"Linkfort_5","marker":{"color":"#FFA15A"},"name":"Linkfort_5","notched":false,"offsetgroup":"Linkfort_5","orientation":"v","showlegend":true,"x":["Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5"],"x0":" ","xaxis":"x","y":{"dtype":"i2","bdata":"CgALABQAKgAJAEoADQBaAFUACwALAAoACAALAAkACQAMAAwAIAAKAPUACAANAAoACgBXAAgACgAhAA8ADgAKAAoA"},"y0":" ","yaxis":"y","type":"box"},{"alignmentgroup":"True","boxpoints":"all","hovertemplate":"dns_name=%{x}\u003cbr\u003elatency_ms=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"Linkfort_2","marker":{"color":"#19d3f3"},"name":"Linkfort_2","notched":false,"offsetgroup":"Linkfort_2","orientation":"v","showlegend":true,"x":["Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2"],"x0":" ","xaxis":"x","y":{"dtype":"i1","bdata":"CxAMDAkJSmE9DE4JCQkLEgsLCQk3CAwPDwsRCywRCgs9"},"y0":" ","yaxis":"y","type":"box"},{"alignmentgroup":"True","boxpoints":"all","hovertemplate":"dns_name=%{x}\u003cbr\u003elatency_ms=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"Linkfort_4","marker":{"color":"#FF6692"},"name":"Linkfort_4","notched":false,"offsetgroup":"Linkfort_4","orientation":"v","showlegend":true,"x":["Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4"],"x0":" ","xaxis":"x","y":{"dtype":"i2","bdata":"CQAmAA4AawAHAAkACwALAAsADgAMAAkABgAKAPwAEwATAAsACwALAAwACwAMAEIADAAJAB0ACgAOAAkACwAcAA8A"},"y0":" ","yaxis":"y","type":"box"},{"alignmentgroup":"True","boxpoints":"all","hovertemplate":"dns_name=%{x}\u003cbr\u003elatency_ms=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"Google_Pri","marker":{"color":"#B6E880"},"name":"Google_Pri","notched":false,"offsetgroup":"Google_Pri","orientation":"v","showlegend":true,"x":["Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri"],"x0":" ","xaxis":"x","y":{"dtype":"i2","bdata":"DAAJAAoACwAKAAsACgD3AAgADwAYAAsACwAQAHEACwBTAQoACQAJABAASwAJAAoASwAJAAsACQAzAAkACAALAAgA"},"y0":" ","yaxis":"y","type":"box"},{"alignmentgroup":"True","boxpoints":"all","hovertemplate":"dns_name=%{x}\u003cbr\u003elatency_ms=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"Linkfort_3","marker":{"color":"#FF97FF"},"name":"Linkfort_3","notched":false,"offsetgroup":"Linkfort_3","orientation":"v","showlegend":true,"x":["Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3"],"x0":" ","xaxis":"x","y":{"dtype":"i1","bdata":"DgoQCAwlCwguCgoZHwwcCk4LDAwREQsLCwlmCAlwCgwL"},"y0":" ","yaxis":"y","type":"box"},{"alignmentgroup":"True","boxpoints":"all","hovertemplate":"dns_name=%{x}\u003cbr\u003elatency_ms=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"Linkfort_1","marker":{"color":"#FECB52"},"name":"Linkfort_1","notched":false,"offsetgroup":"Linkfort_1","orientation":"v","showlegend":true,"x":["Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1"],"x0":" ","xaxis":"x","y":{"dtype":"i1","bdata":"Cgt2Cg0TCQcKaQsMCgtKCgo+DBMKCQoLCwsKDQsLOwoN"},"y0":" ","yaxis":"y","type":"box"},{"alignmentgroup":"True","boxpoints":"all","hovertemplate":"dns_name=%{x}\u003cbr\u003elatency_ms=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"Linkfort_8","marker":{"color":"#636efa"},"name":"Linkfort_8","notched":false,"offsetgroup":"Linkfort_8","orientation":"v","showlegend":true,"x":["Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8"],"x0":" ","xaxis":"x","y":{"dtype":"i1","bdata":"CwkLCRoRCQsKCQsMChAcDAoREwoKCQsJDHMLCwsLLQoJ"},"y0":" ","yaxis":"y","type":"box"},{"alignmentgroup":"True","boxpoints":"all","hovertemplate":"dns_name=%{x}\u003cbr\u003elatency_ms=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"Cloudflare_Sec","marker":{"color":"#EF553B"},"name":"Cloudflare_Sec","notched":false,"offsetgroup":"Cloudflare_Sec","orientation":"v","showlegend":true,"x":["Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec"],"x0":" ","xaxis":"x","y":{"dtype":"i1","bdata":"YwsMBwkMCwsJCAkLCQsLCw0KCwoJCwoJACkKCQwJCQko"},"y0":" ","yaxis":"y","type":"box"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"marker":{"line":{"color":"#283442"}},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#f2f5fa"},"error_y":{"color":"#f2f5fa"},"marker":{"line":{"color":"rgb(17,17,17)","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"marker":{"line":{"color":"#283442"}},"type":"scattergl"}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#A2B1C6","gridcolor":"#506784","linecolor":"#506784","minorgridcolor":"#506784","startlinecolor":"#A2B1C6"},"baxis":{"endlinecolor":"#A2B1C6","gridcolor":"#506784","linecolor":"#506784","minorgridcolor":"#506784","startlinecolor":"#A2B1C6"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#506784"},"line":{"color":"rgb(17,17,17)"}},"header":{"fill":{"color":"#2a3f5f"},"line":{"color":"rgb(17,17,17)"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"rgb(17,17,17)","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#f2f5fa"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"rgb(17,17,17)","plot_bgcolor":"rgb(17,17,17)","polar":{"bgcolor":"rgb(17,17,17)","angularaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"radialaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""}},"ternary":{"bgcolor":"rgb(17,17,17)","aaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"baxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"caxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"#283442","linecolor":"#506784","ticks":"","title":{"standoff":15},"zerolinecolor":"#283442","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"#283442","linecolor":"#506784","ticks":"","title":{"standoff":15},"zerolinecolor":"#283442","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3","gridwidth":2},"yaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3","gridwidth":2},"zaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3","gridwidth":2}},"shapedefaults":{"line":{"color":"#f2f5fa"}},"annotationdefaults":{"arrowcolor":"#f2f5fa","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"rgb(17,17,17)","landcolor":"rgb(17,17,17)","subunitcolor":"#506784","showland":true,"showlakes":true,"lakecolor":"rgb(17,17,17)"},"title":{"x":0.05},"updatemenudefaults":{"bgcolor":"#506784","borderwidth":0},"sliderdefaults":{"bgcolor":"#C8D4E3","borderwidth":1,"bordercolor":"rgb(17,17,17)","tickwidth":0},"mapbox":{"style":"dark"}}},"xaxis":{"anchor":"y","domain":[0.0,1.0],"title":{"text":"dns_name"},"categoryorder":"array","categoryarray":["Google_Sec","Cloudflare_Pri","Linkfort_7","Linkfort_6","Linkfort_5","Linkfort_2","Linkfort_4","Google_Pri","Linkfort_3","Linkfort_1","Linkfort_8","Cloudflare_Sec"]},"yaxis":{"anchor":"x","domain":[0.0,1.0],"title":{"text":"latency_ms"}},"legend":{"title":{"text":"dns_name"},"tracegroupgap":0},"title":{"text":"Estabilidade de Lat\u00eancia (Menor \u00e9 melhor)"},"boxmode":"overlay","font":{"family":"Inter"},"paper_bgcolor":"rgba(0,0,0,0)","plot_bgcolor":"rgba(0,0,0,0)","showlegend":false},                        {"responsive": true}                    )                };            </script>        </div>
-                </div>
-                <!-- Scatter Plot -->
-                <div class="chart-container">
-                     <div>                        <script type="text/javascript">window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
-        <script charset="utf-8" src="https://cdn.plot.ly/plotly-3.3.0.min.js" integrity="sha256-bO3dS6yCpk9aK4gUpNELtCiDeSYvGYnK7jFI58NQnHI=" crossorigin="anonymous"></script>                <div id="3dead71d-a83d-4dab-af3f-b9768b68ca96" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script type="text/javascript">                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("3dead71d-a83d-4dab-af3f-b9768b68ca96")) {                    Plotly.newPlot(                        "3dead71d-a83d-4dab-af3f-b9768b68ca96",                        [{"hovertemplate":"dns_name=Google_Sec\u003cbr\u003eTempo=%{x}\u003cbr\u003eLat\u00eancia (ms)=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"Google_Sec","marker":{"color":"#636efa","symbol":"circle"},"mode":"markers","name":"Google_Sec","orientation":"v","showlegend":true,"x":["2025-12-14 18:22:23","2025-12-14 18:22:24","2025-12-14 18:22:25","2025-12-14 18:22:25","2025-12-14 18:22:26","2025-12-14 18:22:27","2025-12-14 18:22:27","2025-12-14 18:22:28","2025-12-14 18:22:29","2025-12-14 18:22:29","2025-12-14 18:22:30","2025-12-14 18:23:45","2025-12-14 18:23:46","2025-12-14 18:23:47","2025-12-14 18:23:47","2025-12-14 18:23:48","2025-12-14 18:23:49","2025-12-14 18:23:49","2025-12-14 18:23:50","2025-12-14 18:23:50","2025-12-14 18:23:51","2025-12-14 18:23:51","2025-12-14 18:25:08","2025-12-14 18:25:09","2025-12-14 18:25:09","2025-12-14 18:25:10","2025-12-14 18:25:10","2025-12-14 18:25:11","2025-12-14 18:25:12","2025-12-14 18:25:12","2025-12-14 18:25:13","2025-12-14 18:25:13","2025-12-14 18:25:14","2025-12-14 18:26:30","2025-12-14 18:26:31","2025-12-14 18:26:32"],"xaxis":"x","y":{"dtype":"i1","bdata":"MzYVCw0oDAxNCwoPEyM4CwoKCREsCgkKCQoQEgkOCAs5ECcK"},"yaxis":"y","type":"scatter"},{"hovertemplate":"dns_name=Cloudflare_Pri\u003cbr\u003eTempo=%{x}\u003cbr\u003eLat\u00eancia (ms)=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"Cloudflare_Pri","marker":{"color":"#EF553B","symbol":"circle"},"mode":"markers","name":"Cloudflare_Pri","orientation":"v","showlegend":true,"x":["2025-12-14 18:22:31","2025-12-14 18:22:31","2025-12-14 18:22:32","2025-12-14 18:22:32","2025-12-14 18:22:33","2025-12-14 18:22:34","2025-12-14 18:22:34","2025-12-14 18:22:35","2025-12-14 18:22:35","2025-12-14 18:22:36","2025-12-14 18:22:37","2025-12-14 18:23:52","2025-12-14 18:23:53","2025-12-14 18:23:53","2025-12-14 18:23:54","2025-12-14 18:23:55","2025-12-14 18:23:55","2025-12-14 18:23:56","2025-12-14 18:23:56","2025-12-14 18:23:57","2025-12-14 18:23:58","2025-12-14 18:23:59","2025-12-14 18:25:15","2025-12-14 18:25:15","2025-12-14 18:25:16","2025-12-14 18:25:17","2025-12-14 18:25:17","2025-12-14 18:25:18","2025-12-14 18:25:18","2025-12-14 18:25:19","2025-12-14 18:25:19","2025-12-14 18:25:20","2025-12-14 18:25:21"],"xaxis":"x","y":{"dtype":"i2","bdata":"CwAKAAwADQALAAsACgAIAAsADAANANsACQAMAAkACAAKAAoAGAAeADcBBwALAAoACQBXAAkACgAJAAgACQAmAAsA"},"yaxis":"y","type":"scatter"},{"hovertemplate":"dns_name=Linkfort_7\u003cbr\u003eTempo=%{x}\u003cbr\u003eLat\u00eancia (ms)=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"Linkfort_7","marker":{"color":"#00cc96","symbol":"circle"},"mode":"markers","name":"Linkfort_7","orientation":"v","showlegend":true,"x":["2025-12-14 18:22:37","2025-12-14 18:22:38","2025-12-14 18:22:39","2025-12-14 18:22:39","2025-12-14 18:22:40","2025-12-14 18:22:41","2025-12-14 18:22:41","2025-12-14 18:22:42","2025-12-14 18:22:42","2025-12-14 18:22:43","2025-12-14 18:22:44","2025-12-14 18:24:00","2025-12-14 18:24:00","2025-12-14 18:24:01","2025-12-14 18:24:01","2025-12-14 18:24:02","2025-12-14 18:24:03","2025-12-14 18:24:03","2025-12-14 18:24:04","2025-12-14 18:24:04","2025-12-14 18:24:05","2025-12-14 18:24:06","2025-12-14 18:25:21","2025-12-14 18:25:22","2025-12-14 18:25:23","2025-12-14 18:25:23","2025-12-14 18:25:24","2025-12-14 18:25:25","2025-12-14 18:25:26","2025-12-14 18:25:26","2025-12-14 18:25:27","2025-12-14 18:25:27","2025-12-14 18:25:28"],"xaxis":"x","y":{"dtype":"i1","bdata":"agsiCC0wDAoLDAoSHwsKHhYOCRQTCwguDgkNDgoJGVIK"},"yaxis":"y","type":"scatter"},{"hovertemplate":"dns_name=Linkfort_6\u003cbr\u003eTempo=%{x}\u003cbr\u003eLat\u00eancia (ms)=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"Linkfort_6","marker":{"color":"#ab63fa","symbol":"circle"},"mode":"markers","name":"Linkfort_6","orientation":"v","showlegend":true,"x":["2025-12-14 18:22:44","2025-12-14 18:22:45","2025-12-14 18:22:45","2025-12-14 18:22:46","2025-12-14 18:22:47","2025-12-14 18:22:47","2025-12-14 18:22:48","2025-12-14 18:22:49","2025-12-14 18:22:49","2025-12-14 18:22:50","2025-12-14 18:22:50","2025-12-14 18:24:06","2025-12-14 18:24:07","2025-12-14 18:24:08","2025-12-14 18:24:08","2025-12-14 18:24:09","2025-12-14 18:24:09","2025-12-14 18:24:10","2025-12-14 18:24:10","2025-12-14 18:24:11","2025-12-14 18:24:12","2025-12-14 18:24:13","2025-12-14 18:25:29","2025-12-14 18:25:29","2025-12-14 18:25:30","2025-12-14 18:25:30","2025-12-14 18:25:31","2025-12-14 18:25:32","2025-12-14 18:25:32","2025-12-14 18:25:33","2025-12-14 18:25:33","2025-12-14 18:25:34","2025-12-14 18:25:35"],"xaxis":"x","y":{"dtype":"i2","bdata":"OQAOAB8ADAAKADwACwBLAEIAOgAJAAsACgAMAAsACwAJAAoA\u002fwAKAAgACgAKAAkAEAANAGsACAAJAAoACAANADsA"},"yaxis":"y","type":"scatter"},{"hovertemplate":"dns_name=Linkfort_5\u003cbr\u003eTempo=%{x}\u003cbr\u003eLat\u00eancia (ms)=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"Linkfort_5","marker":{"color":"#FFA15A","symbol":"circle"},"mode":"markers","name":"Linkfort_5","orientation":"v","showlegend":true,"x":["2025-12-14 18:22:51","2025-12-14 18:22:52","2025-12-14 18:22:52","2025-12-14 18:22:53","2025-12-14 18:22:54","2025-12-14 18:22:54","2025-12-14 18:22:55","2025-12-14 18:22:56","2025-12-14 18:22:56","2025-12-14 18:22:57","2025-12-14 18:22:58","2025-12-14 18:24:13","2025-12-14 18:24:14","2025-12-14 18:24:14","2025-12-14 18:24:15","2025-12-14 18:24:16","2025-12-14 18:24:16","2025-12-14 18:24:17","2025-12-14 18:24:17","2025-12-14 18:24:18","2025-12-14 18:24:19","2025-12-14 18:24:20","2025-12-14 18:25:35","2025-12-14 18:25:36","2025-12-14 18:25:36","2025-12-14 18:25:37","2025-12-14 18:25:38","2025-12-14 18:25:38","2025-12-14 18:25:39","2025-12-14 18:25:40","2025-12-14 18:25:40","2025-12-14 18:25:41","2025-12-14 18:25:42"],"xaxis":"x","y":{"dtype":"i2","bdata":"CgALABQAKgAJAEoADQBaAFUACwALAAoACAALAAkACQAMAAwAIAAKAPUACAANAAoACgBXAAgACgAhAA8ADgAKAAoA"},"yaxis":"y","type":"scatter"},{"hovertemplate":"dns_name=Linkfort_2\u003cbr\u003eTempo=%{x}\u003cbr\u003eLat\u00eancia (ms)=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"Linkfort_2","marker":{"color":"#19d3f3","symbol":"circle"},"mode":"markers","name":"Linkfort_2","orientation":"v","showlegend":true,"x":["2025-12-14 18:22:58","2025-12-14 18:22:59","2025-12-14 18:23:00","2025-12-14 18:23:00","2025-12-14 18:23:01","2025-12-14 18:23:02","2025-12-14 18:23:02","2025-12-14 18:23:03","2025-12-14 18:23:04","2025-12-14 18:23:04","2025-12-14 18:23:05","2025-12-14 18:24:20","2025-12-14 18:24:21","2025-12-14 18:24:21","2025-12-14 18:24:22","2025-12-14 18:24:22","2025-12-14 18:24:23","2025-12-14 18:24:24","2025-12-14 18:24:24","2025-12-14 18:24:25","2025-12-14 18:24:25","2025-12-14 18:24:26","2025-12-14 18:25:42","2025-12-14 18:25:43","2025-12-14 18:25:43","2025-12-14 18:25:44","2025-12-14 18:25:45","2025-12-14 18:25:45","2025-12-14 18:25:46","2025-12-14 18:25:46","2025-12-14 18:25:47","2025-12-14 18:25:48","2025-12-14 18:25:48"],"xaxis":"x","y":{"dtype":"i1","bdata":"CxAMDAkJSmE9DE4JCQkLEgsLCQk3CAwPDwsRCywRCgs9"},"yaxis":"y","type":"scatter"},{"hovertemplate":"dns_name=Linkfort_4\u003cbr\u003eTempo=%{x}\u003cbr\u003eLat\u00eancia (ms)=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"Linkfort_4","marker":{"color":"#FF6692","symbol":"circle"},"mode":"markers","name":"Linkfort_4","orientation":"v","showlegend":true,"x":["2025-12-14 18:23:05","2025-12-14 18:23:06","2025-12-14 18:23:07","2025-12-14 18:23:07","2025-12-14 18:23:08","2025-12-14 18:23:08","2025-12-14 18:23:09","2025-12-14 18:23:10","2025-12-14 18:23:10","2025-12-14 18:23:11","2025-12-14 18:23:12","2025-12-14 18:24:27","2025-12-14 18:24:27","2025-12-14 18:24:28","2025-12-14 18:24:28","2025-12-14 18:24:29","2025-12-14 18:24:30","2025-12-14 18:24:31","2025-12-14 18:24:31","2025-12-14 18:24:32","2025-12-14 18:24:32","2025-12-14 18:24:33","2025-12-14 18:25:49","2025-12-14 18:25:49","2025-12-14 18:25:50","2025-12-14 18:25:51","2025-12-14 18:25:51","2025-12-14 18:25:52","2025-12-14 18:25:53","2025-12-14 18:25:54","2025-12-14 18:25:54","2025-12-14 18:25:55","2025-12-14 18:25:56"],"xaxis":"x","y":{"dtype":"i2","bdata":"CQAmAA4AawAHAAkACwALAAsADgAMAAkABgAKAPwAEwATAAsACwALAAwACwAMAEIADAAJAB0ACgAOAAkACwAcAA8A"},"yaxis":"y","type":"scatter"},{"hovertemplate":"dns_name=Google_Pri\u003cbr\u003eTempo=%{x}\u003cbr\u003eLat\u00eancia (ms)=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"Google_Pri","marker":{"color":"#B6E880","symbol":"circle"},"mode":"markers","name":"Google_Pri","orientation":"v","showlegend":true,"x":["2025-12-14 18:23:12","2025-12-14 18:23:13","2025-12-14 18:23:13","2025-12-14 18:23:14","2025-12-14 18:23:15","2025-12-14 18:23:15","2025-12-14 18:23:16","2025-12-14 18:23:16","2025-12-14 18:23:17","2025-12-14 18:23:18","2025-12-14 18:23:18","2025-12-14 18:24:33","2025-12-14 18:24:34","2025-12-14 18:24:35","2025-12-14 18:24:35","2025-12-14 18:24:36","2025-12-14 18:24:37","2025-12-14 18:24:37","2025-12-14 18:24:38","2025-12-14 18:24:39","2025-12-14 18:24:39","2025-12-14 18:24:40","2025-12-14 18:25:56","2025-12-14 18:25:57","2025-12-14 18:25:58","2025-12-14 18:25:58","2025-12-14 18:25:59","2025-12-14 18:25:59","2025-12-14 18:26:00","2025-12-14 18:26:00","2025-12-14 18:26:01","2025-12-14 18:26:02","2025-12-14 18:26:02"],"xaxis":"x","y":{"dtype":"i2","bdata":"DAAJAAoACwAKAAsACgD3AAgADwAYAAsACwAQAHEACwBTAQoACQAJABAASwAJAAoASwAJAAsACQAzAAkACAALAAgA"},"yaxis":"y","type":"scatter"},{"hovertemplate":"dns_name=Linkfort_3\u003cbr\u003eTempo=%{x}\u003cbr\u003eLat\u00eancia (ms)=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"Linkfort_3","marker":{"color":"#FF97FF","symbol":"circle"},"mode":"markers","name":"Linkfort_3","orientation":"v","showlegend":true,"x":["2025-12-14 18:23:19","2025-12-14 18:23:20","2025-12-14 18:23:20","2025-12-14 18:23:21","2025-12-14 18:23:21","2025-12-14 18:23:22","2025-12-14 18:23:22","2025-12-14 18:23:23","2025-12-14 18:23:24","2025-12-14 18:23:24","2025-12-14 18:23:25","2025-12-14 18:24:41","2025-12-14 18:24:42","2025-12-14 18:24:42","2025-12-14 18:24:43","2025-12-14 18:24:44","2025-12-14 18:24:44","2025-12-14 18:24:45","2025-12-14 18:24:45","2025-12-14 18:24:46","2025-12-14 18:24:47","2025-12-14 18:24:47","2025-12-14 18:26:03","2025-12-14 18:26:03","2025-12-14 18:26:04","2025-12-14 18:26:05","2025-12-14 18:26:05","2025-12-14 18:26:06","2025-12-14 18:26:07","2025-12-14 18:26:07","2025-12-14 18:26:08","2025-12-14 18:26:09","2025-12-14 18:26:09"],"xaxis":"x","y":{"dtype":"i1","bdata":"DgoQCAwlCwguCgoZHwwcCk4LDAwREQsLCwlmCAlwCgwL"},"yaxis":"y","type":"scatter"},{"hovertemplate":"dns_name=Linkfort_1\u003cbr\u003eTempo=%{x}\u003cbr\u003eLat\u00eancia (ms)=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"Linkfort_1","marker":{"color":"#FECB52","symbol":"circle"},"mode":"markers","name":"Linkfort_1","orientation":"v","showlegend":true,"x":["2025-12-14 18:23:25","2025-12-14 18:23:26","2025-12-14 18:23:26","2025-12-14 18:23:27","2025-12-14 18:23:28","2025-12-14 18:23:28","2025-12-14 18:23:29","2025-12-14 18:23:29","2025-12-14 18:23:30","2025-12-14 18:23:31","2025-12-14 18:23:31","2025-12-14 18:24:48","2025-12-14 18:24:49","2025-12-14 18:24:49","2025-12-14 18:24:50","2025-12-14 18:24:50","2025-12-14 18:24:51","2025-12-14 18:24:51","2025-12-14 18:24:52","2025-12-14 18:24:53","2025-12-14 18:24:53","2025-12-14 18:24:54","2025-12-14 18:26:10","2025-12-14 18:26:10","2025-12-14 18:26:11","2025-12-14 18:26:12","2025-12-14 18:26:12","2025-12-14 18:26:13","2025-12-14 18:26:13","2025-12-14 18:26:14","2025-12-14 18:26:15","2025-12-14 18:26:15","2025-12-14 18:26:16"],"xaxis":"x","y":{"dtype":"i1","bdata":"Cgt2Cg0TCQcKaQsMCgtKCgo+DBMKCQoLCwsKDQsLOwoN"},"yaxis":"y","type":"scatter"},{"hovertemplate":"dns_name=Linkfort_8\u003cbr\u003eTempo=%{x}\u003cbr\u003eLat\u00eancia (ms)=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"Linkfort_8","marker":{"color":"#636efa","symbol":"circle"},"mode":"markers","name":"Linkfort_8","orientation":"v","showlegend":true,"x":["2025-12-14 18:23:32","2025-12-14 18:23:32","2025-12-14 18:23:33","2025-12-14 18:23:34","2025-12-14 18:23:34","2025-12-14 18:23:35","2025-12-14 18:23:35","2025-12-14 18:23:36","2025-12-14 18:23:37","2025-12-14 18:23:37","2025-12-14 18:23:38","2025-12-14 18:24:55","2025-12-14 18:24:55","2025-12-14 18:24:56","2025-12-14 18:24:56","2025-12-14 18:24:57","2025-12-14 18:24:57","2025-12-14 18:24:58","2025-12-14 18:24:59","2025-12-14 18:24:59","2025-12-14 18:25:00","2025-12-14 18:25:01","2025-12-14 18:26:16","2025-12-14 18:26:17","2025-12-14 18:26:18","2025-12-14 18:26:18","2025-12-14 18:26:19","2025-12-14 18:26:19","2025-12-14 18:26:20","2025-12-14 18:26:21","2025-12-14 18:26:21","2025-12-14 18:26:22","2025-12-14 18:26:22"],"xaxis":"x","y":{"dtype":"i1","bdata":"CwkLCRoRCQsKCQsMChAcDAoREwoKCQsJDHMLCwsLLQoJ"},"yaxis":"y","type":"scatter"},{"hovertemplate":"dns_name=Cloudflare_Sec\u003cbr\u003eTempo=%{x}\u003cbr\u003eLat\u00eancia (ms)=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"Cloudflare_Sec","marker":{"color":"#EF553B","symbol":"circle"},"mode":"markers","name":"Cloudflare_Sec","orientation":"v","showlegend":true,"x":["2025-12-14 18:23:38","2025-12-14 18:23:39","2025-12-14 18:23:39","2025-12-14 18:23:40","2025-12-14 18:23:41","2025-12-14 18:23:41","2025-12-14 18:23:42","2025-12-14 18:23:42","2025-12-14 18:23:43","2025-12-14 18:23:44","2025-12-14 18:23:44","2025-12-14 18:25:01","2025-12-14 18:25:02","2025-12-14 18:25:02","2025-12-14 18:25:03","2025-12-14 18:25:03","2025-12-14 18:25:04","2025-12-14 18:25:05","2025-12-14 18:25:05","2025-12-14 18:25:06","2025-12-14 18:25:06","2025-12-14 18:25:07","2025-12-14 18:26:23","2025-12-14 18:26:23","2025-12-14 18:26:24","2025-12-14 18:26:25","2025-12-14 18:26:26","2025-12-14 18:26:26","2025-12-14 18:26:27","2025-12-14 18:26:27","2025-12-14 18:26:28","2025-12-14 18:26:28","2025-12-14 18:26:29"],"xaxis":"x","y":{"dtype":"i1","bdata":"YwsMBwkMCwsJCAkLCQsLCw0KCwoJCwoJACkKCQwJCQko"},"yaxis":"y","type":"scatter"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"marker":{"line":{"color":"#283442"}},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#f2f5fa"},"error_y":{"color":"#f2f5fa"},"marker":{"line":{"color":"rgb(17,17,17)","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"marker":{"line":{"color":"#283442"}},"type":"scattergl"}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#A2B1C6","gridcolor":"#506784","linecolor":"#506784","minorgridcolor":"#506784","startlinecolor":"#A2B1C6"},"baxis":{"endlinecolor":"#A2B1C6","gridcolor":"#506784","linecolor":"#506784","minorgridcolor":"#506784","startlinecolor":"#A2B1C6"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#506784"},"line":{"color":"rgb(17,17,17)"}},"header":{"fill":{"color":"#2a3f5f"},"line":{"color":"rgb(17,17,17)"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"rgb(17,17,17)","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#f2f5fa"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"rgb(17,17,17)","plot_bgcolor":"rgb(17,17,17)","polar":{"bgcolor":"rgb(17,17,17)","angularaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"radialaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""}},"ternary":{"bgcolor":"rgb(17,17,17)","aaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"baxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"caxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"#283442","linecolor":"#506784","ticks":"","title":{"standoff":15},"zerolinecolor":"#283442","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"#283442","linecolor":"#506784","ticks":"","title":{"standoff":15},"zerolinecolor":"#283442","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3","gridwidth":2},"yaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3","gridwidth":2},"zaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3","gridwidth":2}},"shapedefaults":{"line":{"color":"#f2f5fa"}},"annotationdefaults":{"arrowcolor":"#f2f5fa","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"rgb(17,17,17)","landcolor":"rgb(17,17,17)","subunitcolor":"#506784","showland":true,"showlakes":true,"lakecolor":"rgb(17,17,17)"},"title":{"x":0.05},"updatemenudefaults":{"bgcolor":"#506784","borderwidth":0},"sliderdefaults":{"bgcolor":"#C8D4E3","borderwidth":1,"bordercolor":"rgb(17,17,17)","tickwidth":0},"mapbox":{"style":"dark"}}},"xaxis":{"anchor":"y","domain":[0.0,1.0],"title":{"text":"Tempo"}},"yaxis":{"anchor":"x","domain":[0.0,1.0],"title":{"text":"Lat\u00eancia (ms)"}},"legend":{"title":{"text":"dns_name"},"tracegroupgap":0},"title":{"text":"Lat\u00eancia ao Longo do Tempo (Timeline)"},"font":{"family":"Inter"},"paper_bgcolor":"rgba(0,0,0,0)","plot_bgcolor":"rgba(0,0,0,0)"},                        {"responsive": true}                    )                };            </script>        </div>
-                </div>
-            </section>
-            
-            <footer>
-                Linkfort V3.4 • Powered by Python 
-            </footer>
-        </div>
-    </body>
-    </html>
-    
+                data.ranking.slice(0, 3).forEach((row, i) => {
+                    const medal = medals[i] || "";
+                    let scoreColor = '#38bdf8'; // accent
+                    if (row.Score > 80) scoreColor = '#4ade80'; // success
+                    else if (row.Score <= 50) scoreColor = '#f87171'; // danger
+                    
+                    cardsHtml += `
+                    <div class="card winner-card">
+                        <div class="medal">${medal}</div>
+                        <h3>${row['DNS Name']}</h3>
+                        <p class="ip">${row.IP}</p>
+                        <div class="score-badge" style="background: ${scoreColor}">Score: ${row.Score}</div>
+                        <div class="stats-grid">
+                            <div><span>Median</span><br><strong>${row['Median (ms)']}ms</strong></div>
+                            <div><span>Mean</span><br><strong>${row['Mean (ms)']}ms</strong></div>
+                        </div>
+                    </div>`;
+                });
+                cardsContainer.innerHTML = cardsHtml;
+
+                // 3. Domain Table
+                const domainTbody = document.querySelector("#domain-table tbody");
+                let domainRows = "";
+                data.domain_winners.forEach(row => {
+                    domainRows += `<tr>
+                        <td style="font-weight:bold; color:var(--accent-color)">${row.Domain}</td>
+                        <td>${row['Best DNS']}</td>
+                        <td>${row.IP}</td>
+                        <td style="color:var(--success); font-family:monospace">${row['Median Latency']}</td>
+                    </tr>`;
+                });
+                domainTbody.innerHTML = domainRows;
+
+                // 4. Ranking Table
+                const metricsTbody = document.querySelector("#metrics-table tbody");
+                let metricsRows = "";
+                data.ranking.forEach(row => {
+                    metricsRows += `<tr>
+                        <td>${row['DNS Name']}</td>
+                        <td>${row.IP}</td>
+                        <td>${row.Requests}</td>
+                        <td>${row['P95 (ms)']}</td>
+                        <td>${row['Mean (ms)']}</td>
+                        <td>${row['Median (ms)']}</td>
+                        <td>${row['CV (%)']}</td>
+                        <td>${row['Error (%)']}</td>
+                        <td style="font-weight:bold">${row.Score}</td>
+                    </tr>`;
+                });
+                metricsTbody.innerHTML = metricsRows;
+
+                // 5. Charts
+                // Plotly.newPlot uses the JSON structure directly from Python export
+                if (data.charts) {
+                    Plotly.react('chart-bar', data.charts.bar.data, data.charts.bar.layout);
+                    Plotly.react('chart-box', data.charts.box.data, data.charts.box.layout);
+                    Plotly.react('chart-scatter', data.charts.scatter.data, data.charts.scatter.layout);
+                }
+            }
+
+            // Initial Load
+            loadDashboardData();
+        });
+    </script>
+</body>
+</html>

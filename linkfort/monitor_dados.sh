@@ -86,10 +86,12 @@ while [ "$COUNT" -eq -1 ] || [ "$ITERATION" -lt "$COUNT" ]; do
     
     echo "   -> Rodada concluída. Atualizando Dashboard..."
     
-    # V3.4: Auto-Update do Dashboard
-    # Tenta usar python do venv se existir (evita erro de pandas)
-    PYTHON_CMD="python3"
-    if [ -f "$BASE_DIR/.venv/bin/python3" ]; then
+    # V3.5: Auto-Update do Dashboard (DRY)
+    # Usa variável exportada pelo linkfort ou fallback
+    PYTHON_CMD="${PYTHON_EXEC:-python3}"
+    
+    # Se não foi exportado e existe venv, usa (fallback legacy)
+    if [ -z "$PYTHON_EXEC" ] && [ -f "$BASE_DIR/.venv/bin/python3" ]; then
         PYTHON_CMD="$BASE_DIR/.venv/bin/python3"
     fi
 

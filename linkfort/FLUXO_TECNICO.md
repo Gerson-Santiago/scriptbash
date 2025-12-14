@@ -1,4 +1,4 @@
-# 🌐 Fluxo Técnico do Projeto Linkfort (V3.4)
+# 🌐 Fluxo Técnico do Projeto Linkfort (V3.5 - Clean Architecture)
 
 Este documento detalha a arquitetura de engenharia de dados utilizada para o benchmarking de DNS do projeto Linkfort. A solução evoluiu para uma **Arquitetura Híbrida (Bash + Python)** com orquestração unificada via CLI.
 
@@ -7,10 +7,11 @@ Este documento detalha a arquitetura de engenharia de dados utilizada para o ben
 ## 🏗️ Arquitetura da Solução
 
 O sistema opera em um ciclo fechado de **Coleta Contínua** e **Análise Estatística**.
-A versão 3.4 introduz um ciclo de vida de operação explícito:
-1.  **Limpeza (`--reset`)**: Garante estado zero.
-2.  **Coleta (`N` ou `--live`)**: Ingestão de dados com feedback de tempo estimado.
-3.  **Visualização (Auto-Server)**: Entrega imediata do dashboard pós-coleta.
+A versão 3.5 introduz uma separação clara entre **Código (Frontend)** e **Dados (JSON)** para resolver problemas de versionamento Git:
+
+1.  **`dashboard.html` (Estático)**: Versionado no Git. Não sofre alterações durante o uso.
+2.  **`dados.json` (Dinâmico)**: Ignorado no Git (`.gitignore`). Contém métricas e configurações de gráficos que mudam a cada segundo.
+3.  **Visualização (Client-Side)**: O navegador monta o gráfico cruzando o HTML estático com o JSON dinâmico.
 
 ### Diagrama de Fluxo
 
@@ -34,17 +35,14 @@ graph TD
         H -->|Verifica Erros| K[Fator de Disponibilidade]
         
         I & J & K --> L[🏆 Ranking Final]
+        L --> M[Exportar dados.json]
     end
 
-    subgraph Visualizacao [🎨 Camada de Apresentação (HTML/CSS)]
+    subgraph Visualizacao [🎨 Camada de Apresentação (Client-Side)]
         style Visualizacao fill:#fff3e0,stroke:#e65100
-        L --> R[Gráficos Plotly Dark]
-        P --> Q[Geração de HTML V3.4]
-        Q --> S[Injection: CSS Premium & JS]
-        R --> S
-        S --> T[Output: dashboard.html]
-        T --> U[Disponibilizar via server :7777]
-        U --> V[🔴 Botão Live: JS Reload Control]
+        M -->|JSON Fetch| T[dashboard.html]
+        T --> U[Plotly.js Render]
+        U --> V[Disponibilizar via server :7777]
     end
 ```
 
@@ -57,8 +55,9 @@ graph TD
 | **CLI** | `linkfort` | Bash Orquestrador | Centraliza execução, setup (venv/check), Reset de dados e modo Live (Monitor + Server). Implementa UX com estimativa de tempo. |
 | **Worker** | `monitor_dados.sh` | Bash, Dig | Executar milhões de consultas com baixo overhead. Prioriza I/O e precisão. |
 | **Storage** | `dados_dns_linkfort.csv` | CSV | Armazenamento de séries temporais brutas. Schema: `timestamp,dns_name,ip,domain,latency,status` |
-| **Analytics** | `gerar_dashboard.py` | Python, Pandas | Processamento estatístico pesado, rejeição de outliers e cálculo de Score. |
-| **View** | `dashboard.html` | HTML, CSS, JS | **Engine Visual V3.4**. Renderiza Dark Mode, Glassmorphism e interatividade JS (Live Mode). |
+| **Analytics** | `linkfort/src/*.py` | Python Modules | **Refatorado V3.5**. Divide responsabilidades em: `data` (ETL), `analytics` (Math), `charts` (Plotly) e `exporter` (JSON). |
+| **Orchestrator** | `gerar_dashboard.py`| Python Script | Script leve que coordena a execução dos módulos acima. Não contém lógica de negócio. |
+| **View** | `dashboard.html` | HTML, JS, Plotly | **Frontend Estático V3.5**. Renderiza via Client-Side consumindo `dados.json`. Totalmente desacoplado dos dados. |
 
 ---
 

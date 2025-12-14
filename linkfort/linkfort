@@ -51,6 +51,9 @@ pip install -r "$BASE_DIR/requirements.txt" > /dev/null 2>&1 || {
 }
 echo "Ambiente pronto."
 
+# Exporta Python para sub-scripts (DRY)
+export PYTHON_EXEC="$VENV_DIR/bin/python3"
+
 # Função de limpeza para modo Live
 cleanup() {
     echo ""
@@ -132,14 +135,27 @@ elif [[ "$1" =~ ^[0-9]+$ ]]; then
 elif [[ "$1" == "--reset" || "$1" == "-r" ]]; then
     # --- MODO RESET ---
     echo "[3/4] Resetando dados..."
+    
+    # Matar processo na porta 7777
+    if command -v fuser >/dev/null 2>&1; then
+        echo "      > Liberando porta 7777..."
+        fuser -k 7777/tcp >/dev/null 2>&1 || true
+    else
+        echo "      ⚠️  'fuser' não encontrado. Tentando matar python3 serve.py..."
+        pkill -f "serve.py" || true
+    fi
+
     rm -f "$BASE_DIR/dados_dns_linkfort.csv"
     rm -f "$BASE_DIR/dashboard.html"
+    rm -f "$BASE_DIR/dados.json"  # Também remove o JSON
+    
     echo "✅ [RESET COMPLETO]"
-    echo "   Arquivos removidos:"
-    echo "   🗑️  dados_dns_linkfort.csv (Histórico)"
-    echo "   🗑️  dashboard.html         (Relatório)"
+    echo "   Processos encerrados e arquivos removidos:"
+    echo "   🗑️  dados_dns_linkfort.csv"
+    echo "   🗑️  dashboard.html"
+    echo "   🗑️  dados.json"
     echo ""
-    echo "   🔄 Para refazer tudo (coletar novos dados):"
+    echo "   🔄 Para refazer tudo:"
     echo "      ./linkfort 50     (Recomendado)"
     echo "      ./linkfort --test (Teste rápido)"
 
