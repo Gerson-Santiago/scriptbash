@@ -57,13 +57,33 @@ Para combater as limitações de um ambiente "Subhost" (Virtualizado), o algorit
 | :--- | :---: | :--- | :--- |
 | **P95 (Percentil 95)** | **50%** | Latência máxima experimentada por 95% das requisições. | Ignora os 5% de piores casos (outliers da VM) mas penaliza lentidão consistente. |
 | **Mediana (P50)** | **50%** | O valor central da distribuição de latência. | Representa a experiência "típica" do usuário, imune a picos extremos isolados no desvio padrão. |
+
+## ⚠️ Limitações Conhecidas & Mitigações (Código Fonte)
+
+| Limitação | Impacto no Teste | Solução Implementada (`monitor_dados.sh`) |
+| :--- | :--- | :--- |
+| **NAT Overhead** | Adiciona ~2-5ms em toda requisição. | **Sleep 0.2s** entre chamadas para evitar bufferbloat no roteador. |
+| **DNS Hang** | Queries travadas bloqueiam o script. | Uso estrito de flags do `dig`: `+tries=1 +timeout=2` (Falha rápida). |
+| **Packet Loss** | Falha completa na resolução. | Monitoramento de **Taxa de Erro** no Python. Fail-fast no Bash. |
 | **Taxa de Erro** | **Critical** | Porcentagem de falhas (TIMEOUT/SERVFAIL). | **Disponibilidade > Velocidade**. <br>🚨 `> 1%`: Score reduzido em 50%. <br>☠️ `> 5%`: Score ZERADO. |
 
-### 🧮 Fórmula do Score
+### 🧮 Fórmula do Score (V3.0 Implementada)
 
-O Score final (0 a 100) é calculado normalizando as latências, onde **0ms = 100 pontos** e **200ms = 0 pontos**.
+A implementação no `gerar_dashboard.py` utiliza a seguinte lógica exata:
 
-$$ Score_{final} = \left( Score(P95) \times 0.5 \right) + \left( Score(Mediana) \times 0.5 \right) \times Fator_{Disponibilidade} $$
+#### 1. Normalização de Latência (`lat_to_score`)
+Convertemos milissegundos em pontos (0-100), onde **cada 2ms de latência custa 1 ponto**.
+$$ Score_{parcial} = \max(0, 100 - \frac{ms}{2}) $$
+*Exemplo: 20ms = 90 pontos. 200ms+ = 0 pontos.*
+
+#### 2. Composição Ponderada
+$$ Score_{Base} = (Score(P95) \times 0.5) + (Score(Mediana) \times 0.5) $$
+
+#### 3. Penalidade de Disponibilidade (Availability Check)
+O script aplica cortes drásticos caso existam falhas (`status != OK`).
+
+- **Taxa de Erro > 1%**: $$ Score_{Final} = Score_{Base} \times 0.5 $$
+- **Taxa de Erro > 5%**: $$ Score_{Final} = 0 $$ (Desclassificação)
 
 ---
 
