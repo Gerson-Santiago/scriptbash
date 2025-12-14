@@ -40,6 +40,7 @@ graph TD
         R --> S
         S --> T[Output: dashboard.html]
         T --> U[Disponibilizar via server :7777]
+        U --> V[🔴 Botão Live Mode: JS Toggle]
     end
 ```
 

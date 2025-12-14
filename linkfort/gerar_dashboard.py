@@ -364,14 +364,108 @@ def build_html_template(metrics_html, domain_html, chart1_html, chart2_html, top
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta http-equiv="refresh" content="5"> <!-- Auto-Refresh a cada 5s (V3.4) -->
         <title>Linkfort DNS Intelligence</title>
         {css}
+        <style>
+            .live-controls {{
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 15px;
+                margin-bottom: 20px;
+            }}
+            
+            .btn-live {{
+                padding: 8px 16px;
+                border-radius: 6px;
+                border: 1px solid var(--border-color);
+                background: var(--card-bg);
+                color: var(--text-color);
+                font-family: inherit;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                transition: all 0.2s;
+            }}
+            
+            .btn-live:hover {{
+                background: var(--border-color);
+            }}
+            
+            .btn-live.active {{
+                border-color: #ef4444;
+                color: #ef4444;
+                background: rgba(239, 68, 68, 0.1);
+            }}
+
+            .indicator-dot {{
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background-color: #64748b;
+            }}
+            
+            .btn-live.active .indicator-dot {{
+                background-color: #ef4444;
+                box-shadow: 0 0 10px #ef4444;
+                animation: blink 1.5s infinite;
+            }}
+            
+            @keyframes blink {{
+                0% {{ opacity: 1; }}
+                50% {{ opacity: 0.4; }}
+                100% {{ opacity: 1; }}
+            }}
+        </style>
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {{
+                const toggleBtn = document.getElementById("liveToggle");
+                const indicatorText = document.getElementById("statusText");
+                const REFRESH_INTERVAL = 5000;
+                let timer = null;
+                
+                // Verifica estado salvo
+                let isLive = localStorage.getItem("linkfort_live_mode") === "true";
+                
+                function updateState() {{
+                    if (isLive) {{
+                        toggleBtn.classList.add("active");
+                        indicatorText.textContent = "AO VIVO";
+                        if (!timer) {{
+                            timer = setInterval(() => window.location.reload(), REFRESH_INTERVAL);
+                        }}
+                    }} else {{
+                        toggleBtn.classList.remove("active");
+                        indicatorText.textContent = "PAUSADO";
+                        if (timer) {{
+                            clearInterval(timer);
+                            timer = null;
+                        }}
+                    }}
+                    localStorage.setItem("linkfort_live_mode", isLive);
+                }}
+                
+                toggleBtn.addEventListener("click", () => {{
+                    isLive = !isLive;
+                    updateState();
+                }});
+                
+                // Inicializa
+                updateState();
+            }});
+        </script>
     </head>
     <body>
         <div class="container">
             <header>
-                <div class="live-indicator">🔴 AO VIVO</div>
+                <div class="live-controls">
+                    <button id="liveToggle" class="btn-live">
+                        <span class="indicator-dot"></span>
+                        <span id="statusText">PAUSADO</span>
+                    </button>
+                    <!-- <div class="live-indicator">🔴 AO VIVO</div> -->
+                </div>
                 <h1>Linkfort DNS Intelligence</h1>
                 <div class="subtitle">Relatório de Performance de Rede • Gerado em {generated_at}</div>
                 <div class="domains-list">🌐 Testados: {domains_str}</div>
@@ -402,7 +496,7 @@ def build_html_template(metrics_html, domain_html, chart1_html, chart2_html, top
             </section>
             
             <footer>
-                Linkfort V3.3 • Powered by Python & Plotly • Developed by Antigravity
+                Linkfort V3.4 • Powered by Python & Plotly • Developed by Antigravity
             </footer>
         </div>
     </body>

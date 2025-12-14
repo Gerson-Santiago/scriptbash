@@ -1,4 +1,4 @@
-# 📡 Linkfort DNS Benchmark (v3.1)
+# 📡 Linkfort DNS Benchmark (v3.4)
 
 > **Ferramenta profissional de análise de DNS com Visual Premium.**
 > Desenvolvida para ambientes "Subhost" (Containers/WSL/VMs) com foco em precisão e estética.
@@ -7,11 +7,12 @@ Este projeto realiza testes de latência DNS precisos utilizando `dig` e gera um
 
 ---
 
-## ✨ Novidades da v3.2 (Estável)
+## ✨ Novidades da v3.4
 - **🛡️ Anti-Flood**: Sistema de coleta ajustado para não saturar roteadores domésticos.
 - **🎨 Design Premium**: Interface Dark Mode com Glassmorphism e fontes Google.
 - **🚀 Servidor Integrado**: Exibe o relatório automaticamente em `http://localhost:7777`.
 - **🏆 Ranking Inteligente**: Destaca os vencedores com medalhas e badges de score.
+- **🔴 Botão Ao Vivo (v3.4)**: Controle total sobre o auto-refresh do dashboard.
 
 ---
 

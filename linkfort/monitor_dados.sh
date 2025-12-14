@@ -4,6 +4,7 @@
 # Arquitetura: Coleta (Bash) -> CSV -> Análise (Python)
 
 OUTPUT_FILE="dados_dns_linkfort.csv"
+BASE_DIR=$(dirname "$(readlink -f "$0")")
 DOMAINS=("google.com" "amazon.com" "facebook.com" "uol.com.br" "netflix.com" "chatgpt.com" "gemini.google.com" "canva.com" "sei.univesp.br" "bertioga.sp.gov.br" "youtube.com")
 
 # Mapa de DNS (Array associativo requer Bash 4+)
