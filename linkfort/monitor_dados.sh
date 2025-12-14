@@ -1,6 +1,6 @@
 #!/bin/bash
 # monitor_dados.sh
-# Coletor de métricas DNS para o Projeto Linkfort v3.0
+# Coletor de métricas DNS para o Projeto Linkfort v3.4
 # Arquitetura: Coleta (Bash) -> CSV -> Análise (Python)
 
 OUTPUT_FILE="dados_dns_linkfort.csv"
@@ -35,13 +35,13 @@ if [[ "$1" == "--help" ]]; then
 fi
 
 # Configuração de repetição
-# Default: 1 (Para evitar loop infinito acidental se não passar nada)
-COUNT=1 
+# Default: -1 (Loop infinito - Modo Monitor)
+COUNT=-1
 if [[ "$1" == "--count" && -n "$2" ]]; then
     COUNT=$2
 fi
 
-echo "--- Iniciando Coletor Linkfort v3.0 ---"
+echo "--- Iniciando Coletor Linkfort v3.4 ---"
 echo "Saída: $OUTPUT_FILE"
 echo "DNSs: ${!DNS_MAP[@]}"
 echo "Domains: ${DOMAINS[@]}"
@@ -83,8 +83,15 @@ while [ "$COUNT" -eq -1 ] || [ "$ITERATION" -lt "$COUNT" ]; do
     echo "   -> Rodada concluída. Atualizando Dashboard..."
     
     # V3.4: Auto-Update do Dashboard
+    # Tenta usar python do venv se existir (evita erro de pandas)
+    PYTHON_CMD="python3"
+    if [ -f "$BASE_DIR/.venv/bin/python3" ]; then
+        PYTHON_CMD="$BASE_DIR/.venv/bin/python3"
+    fi
+
     # Executa o gerador silenciosamente para atualizar o HTML
-    python3 "$BASE_DIR/gerar_dashboard.py" > /dev/null 2>&1 &
+    # Redirecionando stdout e stderr para /dev/null para nao poluir o term
+    "$PYTHON_CMD" "$BASE_DIR/gerar_dashboard.py" > /dev/null 2>&1 &
     
     sleep 0.5
 done

@@ -189,23 +189,61 @@ def build_html_template(metrics_html, domain_html, chart1_html, chart2_html, top
             -webkit-text-fill-color: transparent;
         }}
         
-        .live-indicator {{
-            display: inline-block;
-            background-color: rgba(220, 38, 38, 0.2);
-            color: #ef4444;
-            font-weight: bold;
-            font-size: 0.8rem;
-            padding: 4px 12px;
-            border-radius: 999px;
-            border: 1px solid #ef4444;
-            margin-bottom: 10px;
-            animation: pulse 2s infinite;
+        /* Live Button Styles */
+        .live-controls {{
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
         }}
         
-        @keyframes pulse {{
-            0% {{ opacity: 1; box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }}
-            70% {{ opacity: 0.7; box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }}
-            100% {{ opacity: 1; box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }}
+        .btn-live {{
+            padding: 8px 16px;
+            border-radius: 999px;
+            border: 1px solid var(--border-color);
+            background: var(--card-bg);
+            color: var(--text-color);
+            font-family: inherit;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }}
+        
+        .btn-live:hover {{
+            background: rgba(56, 189, 248, 0.1);
+            border-color: var(--accent-color);
+        }}
+        
+        .btn-live.active {{
+            border-color: #ef4444;
+            color: #ef4444;
+            background: rgba(220, 38, 38, 0.1);
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
+        }}
+
+        .indicator-dot {{
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #64748b;
+            transition: all 0.3s;
+        }}
+        
+        .btn-live.active .indicator-dot {{
+            background-color: #ef4444;
+            box-shadow: 0 0 8px #ef4444;
+            animation: pulse-dot 1.5s infinite;
+        }}
+        
+        @keyframes pulse-dot {{
+            0% {{ opacity: 1; transform: scale(1); }}
+            50% {{ opacity: 0.6; transform: scale(1.2); }}
+            100% {{ opacity: 1; transform: scale(1); }}
         }}
 
         .subtitle {{
@@ -354,70 +392,14 @@ def build_html_template(metrics_html, domain_html, chart1_html, chart2_html, top
     </style>
     """
     
-    # Gerar HTML dos cards de domínio (alternativa à tabela)
-    # Mas como o usuário pediu "listagem", também podemos usar a tabela.
-    # Vamos usar tabela para manter consistência com o pedido.
-    
     html = f"""
     <!DOCTYPE html>
     <html lang="pt-BR">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Linkfort DNS Intelligence</title>
+        <title>Linkfort DNS Intelligence v3.4</title>
         {css}
-        <style>
-            .live-controls {{
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 15px;
-                margin-bottom: 20px;
-            }}
-            
-            .btn-live {{
-                padding: 8px 16px;
-                border-radius: 6px;
-                border: 1px solid var(--border-color);
-                background: var(--card-bg);
-                color: var(--text-color);
-                font-family: inherit;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                transition: all 0.2s;
-            }}
-            
-            .btn-live:hover {{
-                background: var(--border-color);
-            }}
-            
-            .btn-live.active {{
-                border-color: #ef4444;
-                color: #ef4444;
-                background: rgba(239, 68, 68, 0.1);
-            }}
-
-            .indicator-dot {{
-                width: 8px;
-                height: 8px;
-                border-radius: 50%;
-                background-color: #64748b;
-            }}
-            
-            .btn-live.active .indicator-dot {{
-                background-color: #ef4444;
-                box-shadow: 0 0 10px #ef4444;
-                animation: blink 1.5s infinite;
-            }}
-            
-            @keyframes blink {{
-                0% {{ opacity: 1; }}
-                50% {{ opacity: 0.4; }}
-                100% {{ opacity: 1; }}
-            }}
-        </style>
         <script>
             document.addEventListener("DOMContentLoaded", function() {{
                 const toggleBtn = document.getElementById("liveToggle");
@@ -425,25 +407,30 @@ def build_html_template(metrics_html, domain_html, chart1_html, chart2_html, top
                 const REFRESH_INTERVAL = 5000;
                 let timer = null;
                 
-                // Verifica estado salvo
-                let isLive = localStorage.getItem("linkfort_live_mode") === "true";
+                // Chave storage corrigida
+                const STORAGE_KEY = "linkfort_live_mode_v2";
+                
+                // Verifica estado salvo (default: false se não existir)
+                let isLive = localStorage.getItem(STORAGE_KEY) === "true";
                 
                 function updateState() {{
                     if (isLive) {{
                         toggleBtn.classList.add("active");
-                        indicatorText.textContent = "AO VIVO";
+                        indicatorText.textContent = "AO VIVO (Autorefresh)";
                         if (!timer) {{
+                            console.log("Live mode: STARTED");
                             timer = setInterval(() => window.location.reload(), REFRESH_INTERVAL);
                         }}
                     }} else {{
                         toggleBtn.classList.remove("active");
-                        indicatorText.textContent = "PAUSADO";
+                        indicatorText.textContent = "PAUSADO (Clique para ativar)";
                         if (timer) {{
+                            console.log("Live mode: STOPPED");
                             clearInterval(timer);
                             timer = null;
                         }}
                     }}
-                    localStorage.setItem("linkfort_live_mode", isLive);
+                    localStorage.setItem(STORAGE_KEY, isLive);
                 }}
                 
                 toggleBtn.addEventListener("click", () => {{
@@ -460,11 +447,10 @@ def build_html_template(metrics_html, domain_html, chart1_html, chart2_html, top
         <div class="container">
             <header>
                 <div class="live-controls">
-                    <button id="liveToggle" class="btn-live">
+                    <button id="liveToggle" class="btn-live" title="Ativar/Desativar refresh automático">
                         <span class="indicator-dot"></span>
-                        <span id="statusText">PAUSADO</span>
+                        <span id="statusText">...</span>
                     </button>
-                    <!-- <div class="live-indicator">🔴 AO VIVO</div> -->
                 </div>
                 <h1>Linkfort DNS Intelligence</h1>
                 <div class="subtitle">Relatório de Performance de Rede • Gerado em {generated_at}</div>
@@ -534,7 +520,7 @@ def generate_report(metrics_df, domain_df, raw_df):
         f.write(full_html)
     
     print("\n" + "="*40)
-    print(f"✨ Dashboard Premium V3.3 gerado: {OUTPUT_HTML}")
+    print(f"✨ Dashboard Premium V3.4 gerado: {OUTPUT_HTML}")
     print("="*40)
 
 def main():

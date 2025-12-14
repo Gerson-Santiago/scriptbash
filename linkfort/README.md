@@ -12,30 +12,39 @@ Este projeto realiza testes de latência DNS precisos utilizando `dig` e gera um
 - **🎨 Design Premium**: Interface Dark Mode com Glassmorphism e fontes Google.
 - **🚀 Servidor Integrado**: Exibe o relatório automaticamente em `http://localhost:7777`.
 - **🏆 Ranking Inteligente**: Destaca os vencedores com medalhas e badges de score.
-- **🔴 Botão Ao Vivo (v3.4)**: Controle total sobre o auto-refresh do dashboard.
+- **🔴 Botão Ao Vivo**: Controle interativo de **Play/Pause** para atualização automática (Auto-Refresh) via UI.
 
 ---
 
 ## 🚀 Início Rápido
 
-O orquestrador `run_all.sh` cuida de tudo: cria o ambiente virtual, instala libs, roda os testes e abre o navegador.
+O comando `linkfort` cuida de tudo: cria o ambiente virtual, instala libs, roda os testes e abre o navegador.
 
 ### Rodar um Teste Rápido
 Executa 1 rodada de testes e abre o dashboard.
 ```bash
-./run_all.sh --test
+./linkfort --test
 ```
 
 ### Rodar uma Coleta Estendida
 Executa 50 rodadas para maior precisão estatística.
 ```bash
-./run_all.sh --collect 50
+./linkfort --collect 50
 ```
 
 ### Apenas Visualizar (Sem Coletar)
 Regenera o gráfico com os dados atuais e inicia o servidor.
 ```bash
-./run_all.sh
+./linkfort
+```
+
+### 🔴 Modo Ao Vivo (Recomendado)
+Executa a coleta em background e inicia o servidor web automaticamente em um único terminal.
+
+```bash
+./linkfort --live
+# Acesse http://localhost:7777 e ative o botão "AO VIVO" no topo.
+# Pressione Ctrl+C para encerrar tudo.
 ```
 
 ---
@@ -54,10 +63,10 @@ O Linkfort v3 utiliza um **Algoritmo de Score Ponderado** para ignorar picos de 
 
 | Componente | Script | Função |
 | :--- | :--- | :--- |
-| **Worker** | `monitor_dados.sh` | Coleta dados brutos via `dig` com throttling de 0.2s. |
-| **Engine** | `gerar_dashboard.py` | Processa estatísticas com Pandas e injeta CSS/HTML moderno. |
-| **Server** | `serve.py` | Servidor HTTP leve que serve a porta 7777 e abre o browser. |
-| **Manager** | `run_all.sh` | Orquestra o fluxo fluxo completo (Setup -> Coleta -> Análise -> Server). |
+| **CLI** | `linkfort` | Orquestrador principal (CLI unificada). |
+| **Worker** | `monitor_dados.sh` | (Interno) Coleta dados brutos via `dig`. |
+| **Engine** | `gerar_dashboard.py` | (Interno) Processa estatísticas e gera HTML. |
+| **Server** | `serve.py` | (Interno) Servidor HTTP leve. |
 
 ---
 

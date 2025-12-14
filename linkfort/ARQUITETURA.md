@@ -1,4 +1,4 @@
-# 🧩 Arquitetura do Linkfort DNS (V3.1)
+# 🧩 Arquitetura do Linkfort DNS (V3.4)
 
 Este documento reflete a estrutura de código limpa e os componentes de software em produção, incluindo a camada de apresentação visual.
 
@@ -8,7 +8,7 @@ Este documento reflete a estrutura de código limpa e os componentes de software
 graph TD
     %% Nós de Entrada e Configuração
     User((Usuário))
-    Orchestrator[run_all.sh]
+    CLI[linkfort]
     
     %% Camada de Coleta
     Monitor[monitor_dados.sh]
@@ -23,33 +23,34 @@ graph TD
     Browser[Web Browser]
     
     %% Fluxo
-    User -->|Executa| Orchestrator
+    User -->|Executa| CLI
     
-    Orchestrator -->|1. Coleta| Monitor
+    CLI -->|--live| Parallel{Modo Paralelo}
+    Parallel -->|Start BG| Monitor
+    Parallel -->|Start FG| Server
+    
     Monitor -->|Write| RawData
     
-    Orchestrator -->|2. Analisa| Analyzer
     RawData -->|Read| Analyzer
     Venv -.->|Import| Analyzer
     
     Analyzer -->|Gera HTML+CSS| Dashboard[dashboard.html]
+    Dashboard -->|JS Storage| Browser
     
-    Orchestrator -->|3. Serve| Server
-    Dashboard -.->|Serve :7777| Server
-    Server -->|Auto-Open| Browser
+    Server -->|Serve :7777| Browser
 ```
 
 ## 📂 Componentes Principais
 
-### 🚀 Orquestração (`run_all.sh`)
-O ponto de entrada único do sistema.
-- **Função**: Integrador de Pipeline.
-- **Responsabilidades**: Configurar ambiente, rodar monitor, rodar analise e iniciar servidor.
+### 🚀 Orquestração (`linkfort`)
+O ponto de entrada único do sistema (antigo `run_all.sh`).
+- **Função**: CLI Unificada.
+- **Responsabilidades**: Configurar ambiente, gerenciar processos (Monitor+Server), e limpar recursos.
 
 ### 📡 Coleta (`monitor_dados.sh`)
 O worker de I/O.
 - **Tecnologia**: Bash + `dig`.
-- **Estratégia**: Execução sequencial com throttling (0.2s) para estabilidade de rede.
+- **Estratégia**: Execução sequencial com throttling (0.5s) e detecção automática de ambiente Python.
 
 ### 🧠 Análise & Visualização (`gerar_dashboard.py`)
 O motor de inteligência e design.

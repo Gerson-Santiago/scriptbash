@@ -1,6 +1,6 @@
-# 🌐 Fluxo Técnico do Projeto Linkfort (V3.0)
+# 🌐 Fluxo Técnico do Projeto Linkfort (V3.4)
 
-Este documento detalha a arquitetura de engenharia de dados utilizada para o benchmarking de DNS do projeto Linkfort. A solução evoluiu para uma **Arquitetura Híbrida (Bash + Python)** para garantir precisão milimétrica em ambiente virtualizado.
+Este documento detalha a arquitetura de engenharia de dados utilizada para o benchmarking de DNS do projeto Linkfort. A solução evoluiu para uma **Arquitetura Híbrida (Bash + Python)** com orquestração unificada via CLI.
 
 ---
 
@@ -14,7 +14,7 @@ O sistema opera em um ciclo fechado de **Coleta Contínua** e **Análise Estatí
 graph TD
     subgraph Coleta [📡 Camada de Coleta (Bash)]
         style Coleta fill:#e1f5fe,stroke:#01579b
-        A([Start: monitor_dados.sh]) -->|Loop Infinito| B{Iterar Lista DNS}
+        A([Start: linkfort --live]) -->|Inicia BG| B{Monitor Loop}
         B -->|Executar Query| C[fa:fa-terminal Dig]
         C -->|Raw Output| D[Normalizar Dados]
         D -->|Append| E[(dados_dns_linkfort.csv)]
@@ -35,12 +35,12 @@ graph TD
     subgraph Visualizacao [🎨 Camada de Apresentação (HTML/CSS)]
         style Visualizacao fill:#fff3e0,stroke:#e65100
         L --> R[Gráficos Plotly Dark]
-        P --> Q[Geração de HTML V3.1]
-        Q --> S[Injection: CSS Premium]
+        P --> Q[Geração de HTML V3.4]
+        Q --> S[Injection: CSS Premium & JS]
         R --> S
         S --> T[Output: dashboard.html]
         T --> U[Disponibilizar via server :7777]
-        U --> V[🔴 Botão Live Mode: JS Toggle]
+        U --> V[🔴 Botão Live: JS Reload Control]
     end
 ```
 
@@ -50,10 +50,11 @@ graph TD
 
 | Componente | Arquivo | Tecnologia | Responsabilidade |
 | :--- | :--- | :--- | :--- |
-| **Coleta** | [`monitor_dados.sh`](file:///home/sant/scriptbash/linkfort/monitor_dados.sh) | Bash, Dig | Executar milhões de consultas com baixo overhead. Prioriza I/O e precisão de timestamp. |
-| **Storage** | [`dados_dns_linkfort.csv`](file:///home/sant/scriptbash/linkfort/dados_dns_linkfort.csv) | CSV | Armazenamento de séries temporais brutas. Schema: `timestamp,dns_name,ip,domain,latency,status` |
-| **Analytics** | [`gerar_dashboard.py`](file:///home/sant/scriptbash/linkfort/gerar_dashboard.py) | Python, Pandas | Processamento estatístico pesado, rejeição de outliers e cálculo de Score. |
-| **View** | `dashboard.html` | HTML, CSS, Plotly | **Engine Visual V3.1**. Renderiza Dark Mode, Glassmorphism e interatividade vetorial. |
+| **CLI** | `linkfort` | Bash Orchestrator | Centraliza execução, setup e modo Live (Monitor + Server). |
+| **Worker** | `monitor_dados.sh` | Bash, Dig | Executar milhões de consultas com baixo overhead. Prioriza I/O e precisão. |
+| **Storage** | `dados_dns_linkfort.csv` | CSV | Armazenamento de séries temporais brutas. Schema: `timestamp,dns_name,ip,domain,latency,status` |
+| **Analytics** | `gerar_dashboard.py` | Python, Pandas | Processamento estatístico pesado, rejeição de outliers e cálculo de Score. |
+| **View** | `dashboard.html` | HTML, CSS, JS | **Engine Visual V3.4**. Renderiza Dark Mode, Glassmorphism e interatividade JS (Live Mode). |
 
 ---
 
