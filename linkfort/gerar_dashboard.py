@@ -66,9 +66,12 @@ def calculate_metrics(df):
             
         score_base = (lat_to_score(p95) * 0.5) + (lat_to_score(median) * 0.5)
         
-        if error_rate > 5:
+        # Availability Penalty (V3.2 - Relaxed for Home Networks)
+        # > 25% failures = Score 0 (Unusable)
+        # > 10% failures = 50% Penalty
+        if error_rate > 25:
             final_score = 0
-        elif error_rate > 1:
+        elif error_rate > 10:
             final_score = score_base * 0.5
         else:
             final_score = score_base

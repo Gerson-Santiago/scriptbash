@@ -7,7 +7,8 @@ Este projeto realiza testes de latência DNS precisos utilizando `dig` e gera um
 
 ---
 
-## ✨ Novidades da v3.1
+## ✨ Novidades da v3.2 (Estável)
+- **🛡️ Anti-Flood**: Sistema de coleta ajustado para não saturar roteadores domésticos.
 - **🎨 Design Premium**: Interface Dark Mode com Glassmorphism e fontes Google.
 - **🚀 Servidor Integrado**: Exibe o relatório automaticamente em `http://localhost:7777`.
 - **🏆 Ranking Inteligente**: Destaca os vencedores com medalhas e badges de score.

@@ -58,7 +58,8 @@ while [ "$COUNT" -eq -1 ] || [ "$ITERATION" -lt "$COUNT" ]; do
             
             # Executa dig
             # +noall deve vir antes de +stats
-            output=$(dig "@$ip" "$domain" +noall +stats +tries=1 +timeout=2 2>&1)
+            # TRIES=3 e TIMEOUT=2 para lidar com UDP loss ocasional
+            output=$(dig "@$ip" "$domain" +noall +stats +tries=3 +timeout=2 2>&1)
             
             # Extrai tempo
             latency=$(echo "$output" | grep "Query time:" | awk '{print $4}')
@@ -72,8 +73,8 @@ while [ "$COUNT" -eq -1 ] || [ "$ITERATION" -lt "$COUNT" ]; do
             # Escreve no CSV
             echo "$timestamp,$name,$ip,$domain,$latency,$status" >> "$OUTPUT_FILE"
             
-            # Pequeno sleep para não saturar a rede (Subhost mitigation)
-            sleep 0.2
+            # Sleep moderado para não saturar buffer (Subhost mitigation)
+            sleep 0.5
         done
     done
     

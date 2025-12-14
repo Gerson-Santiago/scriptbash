@@ -71,10 +71,10 @@ Para combater as limitações de um ambiente "Subhost" (Virtualizado), o algorit
 
 | Limitação | Impacto no Teste | Solução Implementada (`monitor_dados.sh`) |
 | :--- | :--- | :--- |
-| **NAT Overhead** | Adiciona ~2-5ms em toda requisição. | **Sleep 0.2s** entre chamadas para evitar bufferbloat no roteador. |
-| **DNS Hang** | Queries travadas bloqueiam o script. | Uso estrito de flags do `dig`: `+tries=1 +timeout=2` (Falha rápida). |
+| **NAT Overhead** | Adiciona ~2-5ms em toda requisição. | **Sleep 0.5s** (Ajuste V3.2) para "respiração" do link. |
+| **DNS Hang** | Queries travadas bloqueiam o script. | Retentativa Inteligente: `+tries=3` com `+timeout=2s`. |
 | **Packet Loss** | Falha completa na resolução. | Monitoramento de **Taxa de Erro** no Python. Fail-fast no Bash. |
-| **Taxa de Erro** | **Critical** | Porcentagem de falhas (TIMEOUT/SERVFAIL). | **Disponibilidade > Velocidade**. <br>🚨 `> 1%`: Score reduzido em 50%. <br>☠️ `> 5%`: Score ZERADO. |
+| **Taxa de Erro** | **Critical** | Porcentagem de falhas (TIMEOUT/SERVFAIL). | **Regra Suavizada (V3.2)** para Redes Domésticas: <br>🚨 `> 10%`: Score reduzido em 50%. <br>☠️ `> 25%`: Score ZERADO. |
 
 ### 🧮 Fórmula do Score (V3.0 Implementada)
 
@@ -88,11 +88,11 @@ $$ Score_{parcial} = \max(0, 100 - \frac{ms}{2}) $$
 #### 2. Composição Ponderada
 $$ Score_{Base} = (Score(P95) \times 0.5) + (Score(Mediana) \times 0.5) $$
 
-#### 3. Penalidade de Disponibilidade (Availability Check)
-O script aplica cortes drásticos caso existam falhas (`status != OK`).
+#### 3. Penalidade de Disponibilidade (Availability Check - V3.2)
+O script aplica penalidades baseadas na estabilidade da conexão:
 
-- **Taxa de Erro > 1%**: $$ Score_{Final} = Score_{Base} \times 0.5 $$
-- **Taxa de Erro > 5%**: $$ Score_{Final} = 0 $$ (Desclassificação)
+- **Taxa de Erro > 10%**: $$ Score_{Final} = Score_{Base} \times 0.5 $$
+- **Taxa de Erro > 25%**: $$ Score_{Final} = 0 $$ (Desclassificação)
 
 ---
 
