@@ -100,5 +100,6 @@ O Linkfort v3 utiliza um **Algoritmo de Score Ponderado** para ignorar picos de 
 
 ## 📋 Requisitos
 - Linux (Debian/Ubuntu/ChromeOS/Zorin)
-- Python 3.x
+- Python 3.x (Testado com `v3.11.2`)
+- Pip (Testado com `v23.0.1`)
 - `dig` (dnsutils)
