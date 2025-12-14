@@ -2559,3 +2559,13 @@ data_hora,dns,dominio,req,tempo_ms
 2025-12-14 10:45,9.9.9.9,sei.univesp.br,req2,11
 2025-12-14 10:45,149.112.112.112,sei.univesp.br,req1,10
 2025-12-14 10:45,149.112.112.112,sei.univesp.br,req2,10
+2025-12-14 10:47,138.97.220.57,bertioga.sp.gov.br,req1,11
+2025-12-14 10:47,138.97.220.57,bertioga.sp.gov.br,req2,11
+2025-12-14 10:47,138.97.220.58,bertioga.sp.gov.br,req1,9
+2025-12-14 10:47,138.97.220.58,bertioga.sp.gov.br,req2,10
+2025-12-14 10:47,138.97.220.60,bertioga.sp.gov.br,req1,10
+2025-12-14 10:47,138.97.220.60,bertioga.sp.gov.br,req2,12
+2025-12-14 10:47,138.97.220.62,bertioga.sp.gov.br,req1,9
+2025-12-14 10:47,138.97.220.62,bertioga.sp.gov.br,req2,9
+2025-12-14 10:47,138.97.220.65,bertioga.sp.gov.br,req1,9
+2025-12-14 10:47,138.97.220.65,bertioga.sp.gov.br,req2,11
