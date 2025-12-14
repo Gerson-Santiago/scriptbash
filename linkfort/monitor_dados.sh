@@ -43,16 +43,32 @@ fi
 
 echo "--- Iniciando Coletor Linkfort v3.4 ---"
 echo "Saída: $OUTPUT_FILE"
-echo "DNSs: ${!DNS_MAP[@]}"
+echo "DNSs: ${DNS_IPS[@]}"
 echo "Domains: ${DOMAINS[@]}"
 echo "---------------------------------------"
+
+# Ordem de execução (Linkfort First)
+DNS_IPS=(
+    "138.97.220.58" # Linkfort_1
+    "138.97.220.62" # Linkfort_2
+    "138.97.220.57" # Linkfort_3
+    "138.97.220.60" # Linkfort_4
+    "138.97.220.65" # Linkfort_5
+    "138.97.220.66" # Linkfort_6
+    "138.97.220.69" # Linkfort_7
+    "138.97.220.70" # Linkfort_8
+    "8.8.8.8"       # Google_Pri
+    "8.8.4.4"       # Google_Sec
+    "1.1.1.1"       # Cloudflare_Pri
+    "1.0.0.1"       # Cloudflare_Sec
+)
 
 ITERATION=0
 while [ "$COUNT" -eq -1 ] || [ "$ITERATION" -lt "$COUNT" ]; do
     ((ITERATION++))
     echo "[$(date '+%H:%M:%S')] Rodada $ITERATION..."
 
-    for ip in "${!DNS_MAP[@]}"; do
+    for ip in "${DNS_IPS[@]}"; do
         name="${DNS_MAP[$ip]}"
         
         for domain in "${DOMAINS[@]}"; do
