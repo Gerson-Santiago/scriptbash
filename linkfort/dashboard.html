@@ -263,6 +263,24 @@
             </table>
         </section>
         
+        <h2>🛡️ Estatísticas de Estabilidade (Erros)</h2>
+        <section class="table-container">
+            <table id="error-table">
+                <thead>
+                    <tr>
+                        <th>DNS Name</th>
+                        <th>IP</th>
+                        <th>Total Reqs</th>
+                        <th>Sucessos</th>
+                        <th>Erros</th>
+                        <th>Taxa de Erro</th>
+                        <th>Principal Causa</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </section>
+
         <h2>📊 Ranking Geral</h2>
         <section class="table-container">
             <table id="metrics-table">
@@ -394,7 +412,90 @@
                 });
                 metricsTbody.innerHTML = metricsRows;
 
-                // 5. Charts
+                // 5. Error Stats Table (New)
+                const errorTbody = document.querySelector("#error-table tbody");
+                let errorStats = {};
+
+                // Process history to get error counts and types
+                if (data.history && data.history.length > 0) {
+                     data.history.forEach(record => {
+                        const dnsName = record.dns_name;
+                        const status = record.status;
+                        
+                        if (!errorStats[dnsName]) {
+                            // Find IP from ranking or use placeholder if not found immediately (will try to fill later)
+                            const rankingInfo = data.ranking.find(r => r['DNS Name'] === dnsName);
+                            errorStats[dnsName] = {
+                                dns_name: dnsName,
+                                ip: rankingInfo ? rankingInfo.IP : 'N/A',
+                                total: 0,
+                                success: 0,
+                                errors: 0,
+                                error_types: {}
+                            };
+                        }
+
+                        errorStats[dnsName].total++;
+                        if (status === 'OK') {
+                            errorStats[dnsName].success++;
+                        } else {
+                            errorStats[dnsName].errors++;
+                            errorStats[dnsName].error_types[status] = (errorStats[dnsName].error_types[status] || 0) + 1;
+                        }
+                    });
+
+                    // Convert to array and calculate valid metrics
+                    const errorRows = Object.values(errorStats).map(stat => {
+                        const errorRate = stat.total > 0 ? (stat.errors / stat.total) * 100 : 0;
+                        
+                        // Find top error
+                        let topError = "N/A";
+                        let maxCount = 0;
+                        for (const [type, count] of Object.entries(stat.error_types)) {
+                            if (count > maxCount) {
+                                maxCount = count;
+                                topError = type;
+                            }
+                        }
+
+                        return {
+                            ...stat,
+                            errorRate: errorRate,
+                            topError: topError
+                        };
+                    });
+
+                    // Sort by Error Rate (Ascending - Best first) then Total requests (Descending)
+                    errorRows.sort((a, b) => {
+                        if (Math.abs(a.errorRate - b.errorRate) > 0.1) return a.errorRate - b.errorRate;
+                        return b.total - a.total; // Tie-break with more data
+                    });
+
+                    let errorTableHtml = "";
+                    errorRows.forEach(row => {
+                         // Only show rows that have data or interesting stats, maybe filter out 100% success if list is too long?
+                         // For now showing all.
+                        
+                        let rankClass = "";
+                        if (row.errorRate === 0) rankClass = "color:var(--success); font-weight:bold;";
+                        else if (row.errorRate > 50) rankClass = "color:var(--danger);";
+
+                        errorTableHtml += `<tr>
+                            <td>${row.dns_name}</td>
+                            <td>${row.ip}</td>
+                            <td>${row.total}</td>
+                            <td style="color:var(--success)">${row.success}</td>
+                            <td style="color:var(--danger)">${row.errors}</td>
+                            <td style="${rankClass}">${row.errorRate.toFixed(1)}%</td>
+                            <td style="font-size:0.85rem; color:var(--subtle-color)">${row.topError}</td>
+                        </tr>`;
+                    });
+                    
+                    if(errorTbody) errorTbody.innerHTML = errorTableHtml;
+                }
+
+
+                // 6. Charts
                 // Plotly.newPlot uses the JSON structure directly from Python export
                 if (data.charts) {
                     Plotly.react('chart-bar', data.charts.bar.data, data.charts.bar.layout);
