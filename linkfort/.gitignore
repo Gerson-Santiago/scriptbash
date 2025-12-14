@@ -10,7 +10,6 @@ env/
 # Data & Output
 output/
 *.csv
-!dados_dns_linkfort.csv
 
 # System
 .DS_Store
