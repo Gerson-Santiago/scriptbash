@@ -1,68 +1,65 @@
-# 📡 Linkfort DNS Benchmark (v3.0)
+# 📡 Linkfort DNS Benchmark (v3.1)
 
-> **Ferramenta profissional de análise de DNS desenvolvida para ambientes "Subhost" (Containers/WSL/VMs).**
+> **Ferramenta profissional de análise de DNS com Visual Premium.**
+> Desenvolvida para ambientes "Subhost" (Containers/WSL/VMs) com foco em precisão e estética.
 
-Este projeto realiza testes de latência DNS precisos utilizando `dig` e gera um dashboard analítico completo com métricas estatísticas robustas (P95, Mediana) para ignorar ruídos de virtualização.
+Este projeto realiza testes de latência DNS precisos utilizando `dig` e gera um **Dashboard Interativo (Dark Mode)** com métricas estatísticas robustas.
+
+---
+
+## ✨ Novidades da v3.1
+- **🎨 Design Premium**: Interface Dark Mode com Glassmorphism e fontes Google.
+- **🚀 Servidor Integrado**: Exibe o relatório automaticamente em `http://localhost:7777`.
+- **🏆 Ranking Inteligente**: Destaca os vencedores com medalhas e badges de score.
 
 ---
 
 ## 🚀 Início Rápido
 
-O projeto conta com um orquestrador inteligente que configura tudo para você (Ambiente Virtual Python + Dependências).
+O orquestrador `run_all.sh` cuida de tudo: cria o ambiente virtual, instala libs, roda os testes e abre o navegador.
 
 ### Rodar um Teste Rápido
-Executa 1 rodada de testes e gera o dashboard.
+Executa 1 rodada de testes e abre o dashboard.
 ```bash
 ./run_all.sh --test
 ```
 
 ### Rodar uma Coleta Estendida
-Executa 50 rodadas de testes (mais dados = maior precisão) e gera o dashboard.
+Executa 50 rodadas para maior precisão estatística.
 ```bash
 ./run_all.sh --collect 50
 ```
 
-### Apenas Gerar Dashboard (Sem Coleta)
-Processa os dados já existentes no CSV.
+### Apenas Visualizar (Sem Coletar)
+Regenera o gráfico com os dados atuais e inicia o servidor.
 ```bash
 ./run_all.sh
 ```
 
 ---
 
-## 📊 Como Funciona o Ranking (SLA Grade)
+## 📊 Como Funciona (SLA Grade)
 
-Diferente de benchmarks comuns que usam Média (facilmente contaminada por picos de CPU), o Linkfort v3 utiliza um **Algoritmo de Score Ponderado**:
+O Linkfort v3 utiliza um **Algoritmo de Score Ponderado** para ignorar picos de CPU virtualizada:
 
-1.  **P95 (Percentil 95)** [`50%`]: Penaliza servidores que têm picos de lentidão eventuais.
-2.  **Mediana** [`50%`]: Mede o desempenho típico "no dia a dia".
-3.  **Disponibilidade** [`Critical`]:
-    *   Falhas > 1%: Score reduzido em **50%**.
-    *   Falhas > 5%: Score **ZERADO** (Desqualificado).
+1.  **P95 (Percentil 95)** [`50%`]: Penaliza a "pior" latência típica.
+2.  **Mediana** [`50%`]: Mede o desempenho comum do dia a dia.
+3.  **Disponibilidade** [`Crítico`]: Falhas > 5% desclassificam o DNS (Score 0).
 
 ---
 
 ## 🛠️ Arquitetura Técnica
 
-| Componente | Função | Detalhes Cativantes |
+| Componente | Script | Função |
 | :--- | :--- | :--- |
-| **`monitor_dados.sh`** | Coletor | Usa `dig` nativo para contornar cache de OS. Implementa *throttling* (0.2s sleep) para não saturar NAT. |
-| **`gerar_dashboard.py`** | Analisador | Python + Pandas. Robusto a falhas de CSV. Calcula Score V3.0 e exporta HTML standalone. |
-| **`run_all.sh`** | Orquestrador | "Infrastructure-as-Code" leve. Cria `.venv` automaticamente e gerencia o fluxo. |
-
----
-
-## 📂 Estrutura de Dados
-Os dados brutos são salvos atomicamente em `dados_dns_linkfort.csv`:
-```csv
-timestamp,dns_name,dns_ip,domain,latency_ms,status
-2025-12-14 12:30:29,Google_Sec,8.8.4.4,google.com,7,OK
-```
+| **Worker** | `monitor_dados.sh` | Coleta dados brutos via `dig` com throttling de 0.2s. |
+| **Engine** | `gerar_dashboard.py` | Processa estatísticas com Pandas e injeta CSS/HTML moderno. |
+| **Server** | `serve.py` | Servidor HTTP leve que serve a porta 7777 e abre o browser. |
+| **Manager** | `run_all.sh` | Orquestra o fluxo fluxo completo (Setup -> Coleta -> Análise -> Server). |
 
 ---
 
 ## 📋 Requisitos
-- Linux (Debian/Ubuntu/ChromeOS)
+- Linux (Debian/Ubuntu/ChromeOS/Zorin)
 - Python 3.x
 - `dig` (dnsutils)
-- `venv` (python3-venv)

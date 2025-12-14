@@ -1,6 +1,6 @@
-# 🧩 Arquitetura do Linkfort DNS (V3.0)
+# 🧩 Arquitetura do Linkfort DNS (V3.1)
 
-Este documento reflete a estrutura de código limpa e os componentes de software em produção.
+Este documento reflete a estrutura de código limpa e os componentes de software em produção, incluindo a camada de apresentação visual.
 
 ## 🗺️ Mapa de Dependências
 
@@ -9,7 +9,6 @@ graph TD
     %% Nós de Entrada e Configuração
     User((Usuário))
     Orchestrator[run_all.sh]
-    Config[Variáveis: DNS_MAP]
     
     %% Camada de Coleta
     Monitor[monitor_dados.sh]
@@ -19,52 +18,55 @@ graph TD
     Analyzer[gerar_dashboard.py]
     Venv[.venv/ Libs]
     
-    %% Saída
-    Dashboard[dashboard.html]
-    Console[Terminal Output]
-
+    %% Camada de Servidor
+    Server[serve.py]
+    Browser[Web Browser]
+    
     %% Fluxo
     User -->|Executa| Orchestrator
-    Orchestrator -->|Chama| Monitor
-    Config -.->|Hardcoded in| Monitor
-    Monitor -->|Append| RawData
     
-    Orchestrator -->|Chama| Analyzer
-    RawData -->|Leitura| Analyzer
+    Orchestrator -->|1. Coleta| Monitor
+    Monitor -->|Write| RawData
+    
+    Orchestrator -->|2. Analisa| Analyzer
+    RawData -->|Read| Analyzer
     Venv -.->|Import| Analyzer
     
-    Analyzer -->|Gera| Dashboard
-    Analyzer -->|Print Top 2| Console
+    Analyzer -->|Gera HTML+CSS| Dashboard[dashboard.html]
+    
+    Orchestrator -->|3. Serve| Server
+    Dashboard -.->|Serve :7777| Server
+    Server -->|Auto-Open| Browser
 ```
 
 ## 📂 Componentes Principais
 
 ### 🚀 Orquestração (`run_all.sh`)
 O ponto de entrada único do sistema.
-- **Função**: Gerenciamento de Ciclo de Vida.
-- **Responsabilidades**:
-  - Validar/Criar ambiente virtual Python (`.venv`).
-  - Instalar dependências (`requirements.txt`).
-  - Interpretar flags CLI (`--test`, `--collect`).
-  - Chamar a coleta e depois a análise.
+- **Função**: Integrador de Pipeline.
+- **Responsabilidades**: Configurar ambiente, rodar monitor, rodar analise e iniciar servidor.
 
 ### 📡 Coleta (`monitor_dados.sh`)
-O "trabalhador" de baixo nível.
+O worker de I/O.
 - **Tecnologia**: Bash + `dig`.
-- **Estratégia**: I/O Bound.
-- **Mitigação**: Usa `sleep 0.2` para evitar saturação de buffer em roteadores domésticos.
-- **Persistência**: Escrita direta em CSV para evitar perda de dados em caso de crash.
+- **Estratégia**: Execução sequencial com throttling (0.2s) para estabilidade de rede.
 
-### 🧠 Análise (`gerar_dashboard.py`)
-O "cérebro" estatístico.
-- **Tecnologia**: Python (Pandas/Plotly).
-- **Algoritmo**: Implementa a lógica de Score V3.0 (ver `FLUXO_TECNICO.md` para a matemática).
-- **Robustez**: Capaz de reconstruir headers de CSV ausentes e ignorar linhas corrompidas.
+### 🧠 Análise & Visualização (`gerar_dashboard.py`)
+O motor de inteligência e design.
+- **Analytics**: Calcula Score V3.0 (P95/Mediana).
+- **Design Engine**: Injeta CSS (Dark Mode, Glassmorphism) e constrói o HTML final.
+- **Plotly Integration**: Gera gráficos vetoriais interativos no tema escuro.
 
-## 💾 Fluxo de Dados
+### 🌐 Servidor (`serve.py`)
+O entregador de experiência.
+- **Tecnologia**: Python `http.server`.
+- **Porta**: 7777.
+- **UX**: Banner ASCII no terminal e abertura automática do navegador padrão.
 
-1.  **Input**: Lista de IPs hardcoded no Hash Map do Bash.
-2.  **Processo 1**: `dig` retorna tempo em ms.
-3.  **Storage**: CSV Schema -> `timestamp,dns_name,dns_ip,domain,latency_ms,status`
-4.  **Processo 2**: Pandas carrega CSV -> `GroupBy` -> `Agg` (P95, Median).
-5.  **Output**: HTML estático (Dashboard) + STDOUT (Resumo).
+## 💾 Fluxo de Dados Final
+
+1.  **Coleta**: `monitor_dados.sh` gera dados brutos em CSV.
+2.  **Processamento**: Python lê CSV, limpa e aplica algoritmo de Score.
+3.  **Renderização**: Python constrói string HTML com CSS "Glass" e Gráficos.
+4.  **Persistência**: Gravação de `dashboard.html`.
+5.  **Entrega**: Servidor HTTP disponibiliza arquivo e invoca cliente (Browser).

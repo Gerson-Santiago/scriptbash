@@ -30,7 +30,16 @@ graph TD
         H -->|Verifica Erros| K[Fator de Disponibilidade]
         
         I & J & K --> L[🏆 Ranking Final]
-        L --> M[Gerar dashboard.html]
+    end
+
+    subgraph Visualizacao [🎨 Camada de Apresentação (HTML/CSS)]
+        style Visualizacao fill:#fff3e0,stroke:#e65100
+        L --> R[Gráficos Plotly Dark]
+        P --> Q[Geração de HTML V3.1]
+        Q --> S[Injection: CSS Premium]
+        R --> S
+        S --> T[Output: dashboard.html]
+        T --> U[Disponibilizar via server :7777]
     end
 ```
 
@@ -43,7 +52,7 @@ graph TD
 | **Coleta** | [`monitor_dados.sh`](file:///home/sant/scriptbash/linkfort/monitor_dados.sh) | Bash, Dig | Executar milhões de consultas com baixo overhead. Prioriza I/O e precisão de timestamp. |
 | **Storage** | [`dados_dns_linkfort.csv`](file:///home/sant/scriptbash/linkfort/dados_dns_linkfort.csv) | CSV | Armazenamento de séries temporais brutas. Schema: `timestamp,dns_name,ip,domain,latency,status` |
 | **Analytics** | [`gerar_dashboard.py`](file:///home/sant/scriptbash/linkfort/gerar_dashboard.py) | Python, Pandas | Processamento estatístico pesado, rejeição de outliers e cálculo de Score. |
-| **View** | `dashboard.html` | HTML, Plotly | Visualização interativa dos resultados para tomada de decisão humana. |
+| **View** | `dashboard.html` | HTML, CSS, Plotly | **Engine Visual V3.1**. Renderiza Dark Mode, Glassmorphism e interatividade vetorial. |
 
 ---
 
@@ -87,13 +96,6 @@ O script aplica cortes drásticos caso existam falhas (`status != OK`).
 
 ---
 
-## ⚠️ Limitações Conhecidas (Subhost Mitigation)
-
-| Limitação | Impacto no Teste | Solução Implementada (V3.0) |
-| :--- | :--- | :--- |
-| **NAT Overhead** | Adiciona ~2-5ms em toda requisição. | Diferenças < 5ms são consideradas irrelevantes (Empate Técnico). |
-| **CPU Steal** | Picos repentinos de latência (Ex: 500ms). | Uso de **P95** ao invés de Média. A média seria contaminada pelo pico, o P95 o ignora. |
-| **Packet Loss** | Falha completa na resolução. | Monitoramento estrito de **Taxa de Erro**. |
 
 ---
 

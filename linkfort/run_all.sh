@@ -47,5 +47,8 @@ python3 "$BASE_DIR/gerar_dashboard.py"
 
 echo "========================================="
 echo "✅ Processo concluído com sucesso!"
-echo "📄 Dashboard: file://$BASE_DIR/dashboard.html"
+echo "🚀 Iniciando Servidor Web..."
 echo "========================================="
+
+# 4. Iniciar Servidor
+python3 "$BASE_DIR/serve.py"
