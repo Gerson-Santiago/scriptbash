@@ -22,7 +22,7 @@ Este projeto realiza testes de latência DNS precisos utilizando `dig` e gera um
 Antes de tudo, garanta que você tenha o Python 3 e o utilitário `dig` instalados.
 ```bash
 sudo apt update
-sudo apt install python3 dnsutils -y
+sudo apt install python3 python3-venv dnsutils -y
 ```
 
 ### 2. Clonar o Repositório
