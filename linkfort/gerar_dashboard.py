@@ -117,46 +117,18 @@ def calculate_domain_winners(df):
             
     return pd.DataFrame(domain_winners)
 
-def build_html_template(metrics_html, domain_html, chart1_html, chart2_html, top_dns, all_domains):
-    """
-    Constrói um HTML moderno e responsivo com CSS injetado.
-    """
-    
-    generated_at = datetime.datetime.now().strftime("%d/%m/%Y %H:%M")
-    domains_str = ", ".join(all_domains)
-    
-    ranking_cards = ""
-    medals = ["🥇", "🥈", "🥉"]
-    
-    for i, (_, row) in enumerate(top_dns.iterrows()):
-        if i >= 3: break
-        medal = medals[i]
-        score_color = THEME['success'] if row['Score'] > 80 else THEME['accent'] if row['Score'] > 50 else THEME['danger']
-        
-        ranking_cards += f"""
-        <div class="card winner-card">
-            <div class="medal">{medal}</div>
-            <h3>{row['DNS Name']}</h3>
-            <p class="ip">{row['IP']}</p>
-            <div class="score-badge" style="background: {score_color}">Score: {row['Score']}</div>
-            <div class="stats-grid">
-                <div><span>Median</span><br><strong>{row['Median (ms)']}ms</strong></div>
-                <div><span>P95</span><br><strong>{row['P95 (ms)']}ms</strong></div>
-            </div>
-        </div>
-        """
-
-    css = f"""
+def get_css_styles(theme):
+    return f"""
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
         
         :root {{
-            --bg-color: {THEME['bg']};
-            --card-bg: {THEME['card']};
-            --text-color: {THEME['text']};
-            --accent-color: {THEME['accent']};
-            --border-color: {THEME['border']};
-            --subtle-color: {THEME['subtle']};
+            --bg-color: {theme['bg']};
+            --card-bg: {theme['card']};
+            --text-color: {theme['text']};
+            --accent-color: {theme['accent']};
+            --border-color: {theme['border']};
+            --subtle-color: {theme['subtle']};
         }}
         
         body {{
@@ -169,7 +141,7 @@ def build_html_template(metrics_html, domain_html, chart1_html, chart2_html, top
         }}
         
         .container {{
-            max_width: 1200px;
+            max-width: 1200px;
             margin: 0 auto;
         }}
         
@@ -185,6 +157,7 @@ def build_html_template(metrics_html, domain_html, chart1_html, chart2_html, top
             font-size: 2.5rem;
             margin: 0;
             background: linear-gradient(90deg, #38bdf8, #818cf8);
+            background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }}
@@ -391,17 +364,11 @@ def build_html_template(metrics_html, domain_html, chart1_html, chart2_html, top
         }}
     </style>
     """
-    
-    html = f"""
-    <!DOCTYPE html>
-    <html lang="pt-BR">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Linkfort DNS Intelligence v3.4</title>
-        {css}
+
+def get_js_scripts():
+    return """
         <script>
-            document.addEventListener("DOMContentLoaded", function() {{
+            document.addEventListener("DOMContentLoaded", function() {
                 const toggleBtn = document.getElementById("liveToggle");
                 const indicatorText = document.getElementById("statusText");
                 const REFRESH_INTERVAL = 5000;
@@ -413,35 +380,78 @@ def build_html_template(metrics_html, domain_html, chart1_html, chart2_html, top
                 // Verifica estado salvo (default: false se não existir)
                 let isLive = localStorage.getItem(STORAGE_KEY) === "true";
                 
-                function updateState() {{
-                    if (isLive) {{
+                function updateState() {
+                    if (isLive) {
                         toggleBtn.classList.add("active");
                         indicatorText.textContent = "AO VIVO (Autorefresh)";
-                        if (!timer) {{
+                        if (!timer) {
                             console.log("Live mode: STARTED");
                             timer = setInterval(() => window.location.reload(), REFRESH_INTERVAL);
-                        }}
-                    }} else {{
+                        }
+                    } else {
                         toggleBtn.classList.remove("active");
                         indicatorText.textContent = "PAUSADO (Clique para ativar)";
-                        if (timer) {{
+                        if (timer) {
                             console.log("Live mode: STOPPED");
                             clearInterval(timer);
                             timer = null;
-                        }}
-                    }}
+                        }
+                    }
                     localStorage.setItem(STORAGE_KEY, isLive);
-                }}
+                }
                 
-                toggleBtn.addEventListener("click", () => {{
+                toggleBtn.addEventListener("click", () => {
                     isLive = !isLive;
                     updateState();
-                }});
+                });
                 
                 // Inicializa
                 updateState();
-            }});
+            });
         </script>
+    """
+
+def build_html_template(metrics_html, domain_html, chart1_html, chart2_html, top_dns, all_domains):
+    """
+    Constrói um HTML moderno e responsivo com CSS injetado.
+    """
+    
+    generated_at = datetime.datetime.now().strftime("%d/%m/%Y %H:%M")
+    domains_str = ", ".join(all_domains)
+    
+    ranking_cards = ""
+    medals = ["🥇", "🥈", "🥉"]
+    
+    for i, (_, row) in enumerate(top_dns.iterrows()):
+        if i >= 3: break
+        medal = medals[i]
+        score_color = THEME['success'] if row['Score'] > 80 else THEME['accent'] if row['Score'] > 50 else THEME['danger']
+        
+        ranking_cards += f"""
+        <div class="card winner-card">
+            <div class="medal">{medal}</div>
+            <h3>{row['DNS Name']}</h3>
+            <p class="ip">{row['IP']}</p>
+            <div class="score-badge" style="background: {score_color}">Score: {row['Score']}</div>
+            <div class="stats-grid">
+                <div><span>Median</span><br><strong>{row['Median (ms)']}ms</strong></div>
+                <div><span>P95</span><br><strong>{row['P95 (ms)']}ms</strong></div>
+            </div>
+        </div>
+        """
+
+    css = get_css_styles(THEME)
+    js = get_js_scripts()
+    
+    html = f"""
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Linkfort DNS Intelligence v3.4</title>
+        {css}
+        {js}
     </head>
     <body>
         <div class="container">
@@ -482,7 +492,7 @@ def build_html_template(metrics_html, domain_html, chart1_html, chart2_html, top
             </section>
             
             <footer>
-                Linkfort V3.4 • Powered by Python & Plotly • Developed by Antigravity
+                Linkfort V3.4 • Powered by Python 
             </footer>
         </div>
     </body>

@@ -100,5 +100,3 @@ O script aplica penalidades baseadas na estabilidade da conexão:
 
 
 ---
-
-> *Documentação atualizada automaticamente pelo Agente Antigravity.*
