@@ -7,7 +7,10 @@ def main():
     # 1. Load Data
     df = load_data()
     if df.empty:
-        print("Nenhum dado encontrado no CSV. Execute a coleta primeiro.")
+        # Generate Skeleton JSON to prevent 404 on frontend
+        empty_stats = {'total_requests': 0, 'success_rate': 0, 'avg_latency': 0}
+        export_to_json(df, df, empty_stats, {}, None)
+        print("⚠️  Nenhum dado ainda. JSON de esqueleto criado.")
         return
 
     # 2. Analytics

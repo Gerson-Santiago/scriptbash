@@ -73,6 +73,9 @@ if [[ "$1" == "--live" ]]; then
     echo "      > Monitorando DNS em background..."
     echo "      > Servidor Web iniciando..."
     
+    # Gera estado inicial (esqueleto) para evitar 404 antes da primeira coleta
+    python3 "$BASE_DIR/gerar_dashboard.py"
+    
     # Inicia monitor em background
     # Redireciona output para log para não poluir
     chmod +x "$BASE_DIR/monitor_dados.sh"
@@ -146,13 +149,11 @@ elif [[ "$1" == "--reset" || "$1" == "-r" ]]; then
     fi
 
     rm -f "$BASE_DIR/dados_dns_linkfort.csv"
-    rm -f "$BASE_DIR/dashboard.html"
     rm -f "$BASE_DIR/dados.json"  # Também remove o JSON
     
     echo "✅ [RESET COMPLETO]"
     echo "   Processos encerrados e arquivos removidos:"
     echo "   🗑️  dados_dns_linkfort.csv"
-    echo "   🗑️  dashboard.html"
     echo "   🗑️  dados.json"
     echo ""
     echo "   🔄 Para refazer tudo:"
@@ -164,11 +165,9 @@ else
     
     # Verifica se há dados antes de prosseguir
     if [ ! -f "$BASE_DIR/dados_dns_linkfort.csv" ]; then
-        echo "⚠️  Nenhum dado encontrado para gerar dashboard."
-        echo "   Execute um teste primeiro. Exemplo:"
-        echo "   ./linkfort --test (Teste rápido)"
-        echo "   ./linkfort 50     (Coletar 50 rodadas)"
-        exit 0
+        echo "⚠️  Nenhum dado encontrado (ainda). "
+        echo "   Gerando dashboard vazio..."
+        # Não aborta mais. Deixa o python criar o JSON esqueleto.
     fi
     
     echo "[3/4] Gerando Dashboard com dados existentes..."

@@ -10,8 +10,9 @@ def load_data():
         df = df.dropna(subset=['latency_ms'])
         return df
     except FileNotFoundError:
-        print(f"Erro: Arquivo '{INPUT_FILE}' não encontrado.")
-        sys.exit(1)
+        print(f"⚠️  Arquivo '{INPUT_FILE}' não encontrado. Iniciando com dados vazios.")
+        # Return empty dataframe with correct columns
+        return pd.DataFrame(columns=["timestamp","dns_name","dns_ip","domain","latency_ms","status"])
     except Exception as e:
         print(f"Erro ao ler dados: {e}")
         sys.exit(1)
