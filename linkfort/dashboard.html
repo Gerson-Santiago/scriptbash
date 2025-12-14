@@ -1,0 +1,577 @@
+
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Linkfort DNS Intelligence v3.4</title>
+        
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+        
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-color: #f8fafc;
+            --accent-color: #38bdf8;
+            --border-color: #334155;
+            --subtle-color: #64748b;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 0;
+            background: linear-gradient(180deg, rgba(30,41,59,0) 0%, rgba(30,41,59,0.5) 100%);
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin: 0;
+            background: linear-gradient(90deg, #38bdf8, #818cf8);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        /* Live Button Styles */
+        .live-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .btn-live {
+            padding: 8px 16px;
+            border-radius: 999px;
+            border: 1px solid var(--border-color);
+            background: var(--card-bg);
+            color: var(--text-color);
+            font-family: inherit;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .btn-live:hover {
+            background: rgba(56, 189, 248, 0.1);
+            border-color: var(--accent-color);
+        }
+        
+        .btn-live.active {
+            border-color: #ef4444;
+            color: #ef4444;
+            background: rgba(220, 38, 38, 0.1);
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
+        }
+
+        .indicator-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #64748b;
+            transition: all 0.3s;
+        }
+        
+        .btn-live.active .indicator-dot {
+            background-color: #ef4444;
+            box-shadow: 0 0 8px #ef4444;
+            animation: pulse-dot 1.5s infinite;
+        }
+        
+        @keyframes pulse-dot {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.2); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .subtitle {
+            color: var(--subtle-color);
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+        
+        .domains-list {
+            margin-top: 15px;
+            font-size: 0.8rem;
+            color: var(--accent-color);
+            background: rgba(56, 189, 248, 0.1);
+            padding: 8px 16px;
+            border-radius: 999px;
+            display: inline-block;
+        }
+        
+        /* Cards */
+        .winners-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+            border-color: var(--accent-color);
+        }
+        
+        .medal { font-size: 3rem; margin-bottom: 10px; }
+        
+        h3 { margin: 10px 0; font-size: 1.5rem; }
+        
+        .ip { font-family: 'JetBrains Mono', monospace; color: var(--subtle-color); background: #0f172a; padding: 4px 8px; border-radius: 4px; display: inline-block; }
+        
+        .score-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-weight: bold;
+            color: #000;
+            margin: 15px 0;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 15px;
+            font-size: 0.9rem;
+        }
+        
+        /* Section Titles */
+        h2 {
+            border-left: 4px solid var(--accent-color);
+            padding-left: 15px;
+            margin-bottom: 20px;
+            color: var(--text-color);
+        }
+        
+        /* Table */
+        .table-container {
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            margin-bottom: 40px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        th {
+            background: #0f172a;
+            color: var(--subtle-color);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
+        }
+        
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background: rgba(56, 189, 248, 0.05); }
+        
+        /* Domain Grid */
+        .domain-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+        
+        .domain-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .domain-name { font-weight: bold; font-size: 1.1rem; color: var(--accent-color); }
+        .winner-name { font-size: 0.9rem; color: var(--text-color); margin-top: 4px; }
+        .winner-lat { font-size: 0.85rem; color: var(--success); font-family: 'JetBrains Mono', monospace; }
+        
+        /* Charts */
+        .chart-container {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        footer {
+            text-align: center;
+            color: var(--subtle-color);
+            font-size: 0.8rem;
+            margin-top: 60px;
+            padding-bottom: 20px;
+        }
+    </style>
+    
+        
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const toggleBtn = document.getElementById("liveToggle");
+                const indicatorText = document.getElementById("statusText");
+                const REFRESH_INTERVAL = 5000;
+                let timer = null;
+                
+                // Chave storage corrigida
+                const STORAGE_KEY = "linkfort_live_mode_v2";
+                
+                // Verifica estado salvo (default: false se não existir)
+                let isLive = localStorage.getItem(STORAGE_KEY) === "true";
+                
+                function updateState() {
+                    if (isLive) {
+                        toggleBtn.classList.add("active");
+                        indicatorText.textContent = "AO VIVO (Autorefresh)";
+                        if (!timer) {
+                            console.log("Live mode: STARTED");
+                            timer = setInterval(() => window.location.reload(), REFRESH_INTERVAL);
+                        }
+                    } else {
+                        toggleBtn.classList.remove("active");
+                        indicatorText.textContent = "PAUSADO (Clique para ativar)";
+                        if (timer) {
+                            console.log("Live mode: STOPPED");
+                            clearInterval(timer);
+                            timer = null;
+                        }
+                    }
+                    localStorage.setItem(STORAGE_KEY, isLive);
+                }
+                
+                toggleBtn.addEventListener("click", () => {
+                    isLive = !isLive;
+                    updateState();
+                });
+                
+                // Inicializa
+                updateState();
+            });
+        </script>
+    
+    </head>
+    <body>
+        <div class="container">
+            <header>
+                <div class="live-controls">
+                    <button id="liveToggle" class="btn-live" title="Ativar/Desativar refresh automático">
+                        <span class="indicator-dot"></span>
+                        <span id="statusText">...</span>
+                    </button>
+                </div>
+                <h1>Linkfort DNS Intelligence</h1>
+                <div class="subtitle">Relatório de Performance de Rede • Gerado em 14/12/2025 17:36</div>
+                <div class="domains-list">🌐 Testados: amazon.com, bertioga.sp.gov.br, canva.com, chatgpt.com, facebook.com, gemini.google.com, google.com, netflix.com, sei.univesp.br, uol.com.br, youtube.com</div>
+            </header>
+            
+            <section class="winners-section">
+                
+        <div class="card winner-card">
+            <div class="medal">🥇</div>
+            <h3>Linkfort_5</h3>
+            <p class="ip">138.97.220.65</p>
+            <div class="score-badge" style="background: #38bdf8">Score: 77.0</div>
+            <div class="stats-grid">
+                <div><span>Median</span><br><strong>11.0ms</strong></div>
+                <div><span>P95</span><br><strong>81.0ms</strong></div>
+            </div>
+        </div>
+        
+        <div class="card winner-card">
+            <div class="medal">🥈</div>
+            <h3>Linkfort_3</h3>
+            <p class="ip">138.97.220.57</p>
+            <div class="score-badge" style="background: #38bdf8">Score: 72.8</div>
+            <div class="stats-grid">
+                <div><span>Median</span><br><strong>11.0ms</strong></div>
+                <div><span>P95</span><br><strong>98.0ms</strong></div>
+            </div>
+        </div>
+        
+        <div class="card winner-card">
+            <div class="medal">🥉</div>
+            <h3>Linkfort_7</h3>
+            <p class="ip">138.97.220.69</p>
+            <div class="score-badge" style="background: #38bdf8">Score: 70.4</div>
+            <div class="stats-grid">
+                <div><span>Median</span><br><strong>11.0ms</strong></div>
+                <div><span>P95</span><br><strong>107.25ms</strong></div>
+            </div>
+        </div>
+        
+            </section>
+            
+            <h2>🏆 Campeões por Site</h2>
+            <section class="table-container">
+                <table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Domain</th>
+      <th>Best DNS</th>
+      <th>IP</th>
+      <th>Median Latency</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>google.com</td>
+      <td>Cloudflare_Pri</td>
+      <td>1.1.1.1</td>
+      <td>10.5 ms</td>
+    </tr>
+    <tr>
+      <td>amazon.com</td>
+      <td>Linkfort_7</td>
+      <td>138.97.220.69</td>
+      <td>10.0 ms</td>
+    </tr>
+    <tr>
+      <td>facebook.com</td>
+      <td>Cloudflare_Sec</td>
+      <td>1.0.0.1</td>
+      <td>10.0 ms</td>
+    </tr>
+    <tr>
+      <td>uol.com.br</td>
+      <td>Cloudflare_Pri</td>
+      <td>1.1.1.1</td>
+      <td>10.0 ms</td>
+    </tr>
+    <tr>
+      <td>netflix.com</td>
+      <td>Linkfort_3</td>
+      <td>138.97.220.57</td>
+      <td>10.0 ms</td>
+    </tr>
+    <tr>
+      <td>chatgpt.com</td>
+      <td>Google_Pri</td>
+      <td>8.8.8.8</td>
+      <td>10.0 ms</td>
+    </tr>
+    <tr>
+      <td>gemini.google.com</td>
+      <td>Linkfort_6</td>
+      <td>138.97.220.66</td>
+      <td>10.0 ms</td>
+    </tr>
+    <tr>
+      <td>canva.com</td>
+      <td>Linkfort_8</td>
+      <td>138.97.220.70</td>
+      <td>10.0 ms</td>
+    </tr>
+    <tr>
+      <td>sei.univesp.br</td>
+      <td>Linkfort_3</td>
+      <td>138.97.220.57</td>
+      <td>10.0 ms</td>
+    </tr>
+    <tr>
+      <td>bertioga.sp.gov.br</td>
+      <td>Linkfort_2</td>
+      <td>138.97.220.62</td>
+      <td>10.5 ms</td>
+    </tr>
+    <tr>
+      <td>youtube.com</td>
+      <td>Linkfort_3</td>
+      <td>138.97.220.57</td>
+      <td>10.0 ms</td>
+    </tr>
+  </tbody>
+</table>
+            </section>
+            
+            <h2>📊 Ranking Geral</h2>
+            <section class="table-container">
+                <table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>DNS Name</th>
+      <th>IP</th>
+      <th>P95 (ms)</th>
+      <th>Median (ms)</th>
+      <th>CV (%)</th>
+      <th>Error (%)</th>
+      <th>Score</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Linkfort_5</td>
+      <td>138.97.220.65</td>
+      <td>81.00</td>
+      <td>11.0</td>
+      <td>173.5</td>
+      <td>0.0</td>
+      <td>77.0</td>
+    </tr>
+    <tr>
+      <td>Linkfort_3</td>
+      <td>138.97.220.57</td>
+      <td>98.00</td>
+      <td>11.0</td>
+      <td>176.3</td>
+      <td>0.0</td>
+      <td>72.8</td>
+    </tr>
+    <tr>
+      <td>Linkfort_7</td>
+      <td>138.97.220.69</td>
+      <td>107.25</td>
+      <td>11.0</td>
+      <td>162.7</td>
+      <td>0.0</td>
+      <td>70.4</td>
+    </tr>
+    <tr>
+      <td>Cloudflare_Pri</td>
+      <td>1.1.1.1</td>
+      <td>112.80</td>
+      <td>11.0</td>
+      <td>222.7</td>
+      <td>0.0</td>
+      <td>69.1</td>
+    </tr>
+    <tr>
+      <td>Linkfort_6</td>
+      <td>138.97.220.66</td>
+      <td>112.45</td>
+      <td>11.0</td>
+      <td>167.5</td>
+      <td>0.0</td>
+      <td>69.1</td>
+    </tr>
+    <tr>
+      <td>Linkfort_1</td>
+      <td>138.97.220.58</td>
+      <td>115.00</td>
+      <td>11.0</td>
+      <td>182.5</td>
+      <td>0.0</td>
+      <td>68.5</td>
+    </tr>
+    <tr>
+      <td>Cloudflare_Sec</td>
+      <td>1.0.0.1</td>
+      <td>149.00</td>
+      <td>11.0</td>
+      <td>180.7</td>
+      <td>0.0</td>
+      <td>60.0</td>
+    </tr>
+    <tr>
+      <td>Google_Pri</td>
+      <td>8.8.8.8</td>
+      <td>159.80</td>
+      <td>11.0</td>
+      <td>193.6</td>
+      <td>0.0</td>
+      <td>57.3</td>
+    </tr>
+    <tr>
+      <td>Google_Sec</td>
+      <td>8.8.4.4</td>
+      <td>171.50</td>
+      <td>11.5</td>
+      <td>172.7</td>
+      <td>0.0</td>
+      <td>54.3</td>
+    </tr>
+    <tr>
+      <td>Linkfort_4</td>
+      <td>138.97.220.60</td>
+      <td>183.00</td>
+      <td>11.0</td>
+      <td>230.9</td>
+      <td>0.0</td>
+      <td>51.5</td>
+    </tr>
+    <tr>
+      <td>Linkfort_2</td>
+      <td>138.97.220.62</td>
+      <td>194.55</td>
+      <td>11.0</td>
+      <td>196.1</td>
+      <td>0.0</td>
+      <td>48.6</td>
+    </tr>
+    <tr>
+      <td>Linkfort_8</td>
+      <td>138.97.220.70</td>
+      <td>216.00</td>
+      <td>11.0</td>
+      <td>237.6</td>
+      <td>0.0</td>
+      <td>47.2</td>
+    </tr>
+  </tbody>
+</table>
+            </section>
+            
+            <h2>📈 Análise Visual</h2>
+            <section class="charts-grid">
+                <div class="chart-container">
+                    <div>                        <script type="text/javascript">window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
+        <script charset="utf-8" src="https://cdn.plot.ly/plotly-3.3.0.min.js" integrity="sha256-bO3dS6yCpk9aK4gUpNELtCiDeSYvGYnK7jFI58NQnHI=" crossorigin="anonymous"></script>                <div id="6466de99-c250-4763-8b69-574cc1f68d55" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script type="text/javascript">                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("6466de99-c250-4763-8b69-574cc1f68d55")) {                    Plotly.newPlot(                        "6466de99-c250-4763-8b69-574cc1f68d55",                        [{"hovertemplate":"DNS Name=%{x}\u003cbr\u003eScore=%{marker.color}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"","marker":{"color":{"dtype":"f8","bdata":"AAAAAABAU0AzMzMzMzNSQJqZmZmZmVFAZmZmZmZGUUBmZmZmZkZRQAAAAAAAIFFAAAAAAAAATkBmZmZmZqZMQGZmZmZmJktAAAAAAADASUDNzMzMzExIQJqZmZmZmUdA"},"coloraxis":"coloraxis","pattern":{"shape":""}},"name":"","orientation":"v","showlegend":false,"text":{"dtype":"f8","bdata":"AAAAAABAU0AzMzMzMzNSQJqZmZmZmVFAZmZmZmZGUUBmZmZmZkZRQAAAAAAAIFFAAAAAAAAATkBmZmZmZqZMQGZmZmZmJktAAAAAAADASUDNzMzMzExIQJqZmZmZmUdA"},"textposition":"auto","x":["Linkfort_5","Linkfort_3","Linkfort_7","Cloudflare_Pri","Linkfort_6","Linkfort_1","Cloudflare_Sec","Google_Pri","Google_Sec","Linkfort_4","Linkfort_2","Linkfort_8"],"xaxis":"x","y":{"dtype":"f8","bdata":"AAAAAABAU0AzMzMzMzNSQJqZmZmZmVFAZmZmZmZGUUBmZmZmZkZRQAAAAAAAIFFAAAAAAAAATkBmZmZmZqZMQGZmZmZmJktAAAAAAADASUDNzMzMzExIQJqZmZmZmUdA"},"yaxis":"y","type":"bar"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"marker":{"line":{"color":"#283442"}},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#f2f5fa"},"error_y":{"color":"#f2f5fa"},"marker":{"line":{"color":"rgb(17,17,17)","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"marker":{"line":{"color":"#283442"}},"type":"scattergl"}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#A2B1C6","gridcolor":"#506784","linecolor":"#506784","minorgridcolor":"#506784","startlinecolor":"#A2B1C6"},"baxis":{"endlinecolor":"#A2B1C6","gridcolor":"#506784","linecolor":"#506784","minorgridcolor":"#506784","startlinecolor":"#A2B1C6"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#506784"},"line":{"color":"rgb(17,17,17)"}},"header":{"fill":{"color":"#2a3f5f"},"line":{"color":"rgb(17,17,17)"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"rgb(17,17,17)","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#f2f5fa"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"rgb(17,17,17)","plot_bgcolor":"rgb(17,17,17)","polar":{"bgcolor":"rgb(17,17,17)","angularaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"radialaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""}},"ternary":{"bgcolor":"rgb(17,17,17)","aaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"baxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"caxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"#283442","linecolor":"#506784","ticks":"","title":{"standoff":15},"zerolinecolor":"#283442","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"#283442","linecolor":"#506784","ticks":"","title":{"standoff":15},"zerolinecolor":"#283442","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3","gridwidth":2},"yaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3","gridwidth":2},"zaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3","gridwidth":2}},"shapedefaults":{"line":{"color":"#f2f5fa"}},"annotationdefaults":{"arrowcolor":"#f2f5fa","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"rgb(17,17,17)","landcolor":"rgb(17,17,17)","subunitcolor":"#506784","showland":true,"showlakes":true,"lakecolor":"rgb(17,17,17)"},"title":{"x":0.05},"updatemenudefaults":{"bgcolor":"#506784","borderwidth":0},"sliderdefaults":{"bgcolor":"#C8D4E3","borderwidth":1,"bordercolor":"rgb(17,17,17)","tickwidth":0},"mapbox":{"style":"dark"}}},"xaxis":{"anchor":"y","domain":[0.0,1.0],"title":{"text":"DNS Name"}},"yaxis":{"anchor":"x","domain":[0.0,1.0],"title":{"text":"Score"}},"coloraxis":{"colorbar":{"title":{"text":"Score"}},"colorscale":[[0.0,"#440154"],[0.1111111111111111,"#482878"],[0.2222222222222222,"#3e4989"],[0.3333333333333333,"#31688e"],[0.4444444444444444,"#26828e"],[0.5555555555555556,"#1f9e89"],[0.6666666666666666,"#35b779"],[0.7777777777777778,"#6ece58"],[0.8888888888888888,"#b5de2b"],[1.0,"#fde725"]]},"legend":{"tracegroupgap":0},"title":{"text":"Ranking de Performance (Score V3.0)"},"barmode":"relative","font":{"family":"Inter"},"paper_bgcolor":"rgba(0,0,0,0)","plot_bgcolor":"rgba(0,0,0,0)"},                        {"responsive": true}                    )                };            </script>        </div>
+                </div>
+                <div class="chart-container">
+                    <div>                        <script type="text/javascript">window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
+        <script charset="utf-8" src="https://cdn.plot.ly/plotly-3.3.0.min.js" integrity="sha256-bO3dS6yCpk9aK4gUpNELtCiDeSYvGYnK7jFI58NQnHI=" crossorigin="anonymous"></script>                <div id="a2417be8-98c0-476e-b663-826ae83e5ab2" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script type="text/javascript">                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("a2417be8-98c0-476e-b663-826ae83e5ab2")) {                    Plotly.newPlot(                        "a2417be8-98c0-476e-b663-826ae83e5ab2",                        [{"alignmentgroup":"True","boxpoints":"all","hovertemplate":"dns_name=%{x}\u003cbr\u003elatency_ms=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"Google_Sec","marker":{"color":"#636efa"},"name":"Google_Sec","notched":false,"offsetgroup":"Google_Sec","orientation":"v","showlegend":true,"x":["Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec","Google_Sec"],"x0":" ","xaxis":"x","y":{"dtype":"i2","bdata":"DAALAAsACgALAPIACAAKAA0ADAAkABAAIwAPAEUAUwEMAGsADAALAAsADQANAAoADQAcABIACgAjAAkACgALAA0ABwAOANwACgAKAAwAPwALAAkAZwALABAADAAJAFMADgArAA4ADQALAEoACwBiAAsANAAJAAoACwAJABsACwANAAoADQAJAAUAUQAMAAoAFQAIAA0AQQAKAPIACwA0AAoA2QAMAAkADAANAAsACgCTAAoA\u002fgBwAAsAFwELAAsASgAMAA0ACwALAAoAJAAJAAsACQALAAoAQAA5AAkACQANAAsADAANACYADwAKAAwACgALAAoACgAKAAsACwAMAAkACgALAAwACwAKAA=="},"y0":" ","yaxis":"y","type":"box"},{"alignmentgroup":"True","boxpoints":"all","hovertemplate":"dns_name=%{x}\u003cbr\u003elatency_ms=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"Cloudflare_Pri","marker":{"color":"#EF553B"},"name":"Cloudflare_Pri","notched":false,"offsetgroup":"Cloudflare_Pri","orientation":"v","showlegend":true,"x":["Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri","Cloudflare_Pri"],"x0":" ","xaxis":"x","y":{"dtype":"i2","bdata":"8gDwAAsACgAJAAoARgANAAwA\u002fwIbAAkADAAPAAgADgALAA4AYQA5AAgACwALAAoAFAAMABkACgAMAAoACgALAAoACAAJAAsACgAJAA0ADAAVAAwADQD2AAoAZAAMAFIACwAMAD8ACwAMAA8ADQARADQAPwAKAAsAMwAIAAkArAALAAsACwALAAoAPAAsAAoACQAkAAoAMAARAAsACAA6AAgASQAKAAsACwBvAA0AXgAIAAoACwAJACwAcwBjAAwACgALAAsACgATAAoATwAJAGwACwALANkADAAIAAoACwAMAAkADAAJAAoACQALAAsACwALAAwACwALAAsACgANAAoACgAMAAoA"},"y0":" ","yaxis":"y","type":"box"},{"alignmentgroup":"True","boxpoints":"all","hovertemplate":"dns_name=%{x}\u003cbr\u003elatency_ms=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"Linkfort_7","marker":{"color":"#00cc96"},"name":"Linkfort_7","notched":false,"offsetgroup":"Linkfort_7","orientation":"v","showlegend":true,"x":["Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7","Linkfort_7"],"x0":" ","xaxis":"x","y":{"dtype":"i2","bdata":"CwBSAEcATgALAHAACgBiAAkACwAMAAwACAAJAAwA\u002fAAOAAkADAAJAAwACgDtAAkACQAKAAoACgAMAAwACwAKAAoACQAKAAsACAAKAAsADAAwAPAANgAJAAcAFwAMAAoACgBeAAsACgBuAA0ACgAWAAoAGgAPAAoAJAALAAoACwAHADEAFQAKAGIACgAIAAgAGAA8AAkAaQAOAAwADwAIAAoACgAMACIA\u002fwALAHEACwAKAAgALQAMADYACQAJADIACgALAA0AEQAJAAsAMAAMAAgACQAUAAsAFAAtAAoACwAMAAwACQALAAwACwANAAwAFAAOAAoACwALAAsADQAKAAgACwALAAsA"},"y0":" ","yaxis":"y","type":"box"},{"alignmentgroup":"True","boxpoints":"all","hovertemplate":"dns_name=%{x}\u003cbr\u003elatency_ms=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"Linkfort_6","marker":{"color":"#ab63fa"},"name":"Linkfort_6","notched":false,"offsetgroup":"Linkfort_6","orientation":"v","showlegend":true,"x":["Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6","Linkfort_6"],"x0":" ","xaxis":"x","y":{"dtype":"i2","bdata":"DAAMAAwACwALAAkACgAMAAkACwAZAAsADQAMAA4ACQAjAPwADwAKABAACgBJAS4AOwDfAAgADwAPAA4ACgAKAAkADAAIAAoACwAJABsACgD4AAkADAAKAE8ACABrAFgACwAJAEcACwALAAsACAAZAQoACQAhAAkAcgAKAAkAQwALAAgACAAKABYACgBvAAsADQAvAAoATAAKAAoAFwALAFoADABnAD4ACwALAAgAagBxAAoADAAKAAoACwAJACUACwAIADkACwBwAAsAagAOAG8ACgALAA4ACQALAAkACgAMAAoACQAKAAkACgAMAAwACgAMAAsADgAJAAoACgAKAAkACwAKAA0A"},"y0":" ","yaxis":"y","type":"box"},{"alignmentgroup":"True","boxpoints":"all","hovertemplate":"dns_name=%{x}\u003cbr\u003elatency_ms=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"Linkfort_5","marker":{"color":"#FFA15A"},"name":"Linkfort_5","notched":false,"offsetgroup":"Linkfort_5","orientation":"v","showlegend":true,"x":["Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5","Linkfort_5"],"x0":" ","xaxis":"x","y":{"dtype":"i2","bdata":"CwAOAA0ACgBIAAgALgAWAEgADAAKAAkAGAAQAAoACwAJAAoADAAKAAwACQALAAsACwAJAAkACgAKAAsACgANAAsACwAJAAgADAALAAoACgAKAA0ADAALAAcAXAAKAAkALQAMAAsAeAAIABYACwA5AA4AFAAMAAkAIwALAHIACABBAAoACwAKAAkAEgALAFsBCwAoAAsACgA+AAwACQAfAAoACQAMAAsAGQAKAAsALwALAG4ADQAJADIANgA8AAkACQBgAAoACwAHAAoACgAMADgADAAOAQsAMgALAAoACQAKAAsACwAIAAwACwAJAAoACQALAAsADAALAAoACwAKAAkACgALAAsA"},"y0":" ","yaxis":"y","type":"box"},{"alignmentgroup":"True","boxpoints":"all","hovertemplate":"dns_name=%{x}\u003cbr\u003elatency_ms=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"Linkfort_2","marker":{"color":"#19d3f3"},"name":"Linkfort_2","notched":false,"offsetgroup":"Linkfort_2","orientation":"v","showlegend":true,"x":["Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2","Linkfort_2"],"x0":" ","xaxis":"x","y":{"dtype":"i2","bdata":"CwAKAAkAHQAEAQkACgATABcAUgENAAsAEQAMAAwACAAKAAsADQAKAAkADgAMAAwADAALAEYBCgANAAgACgALAAoACgALAAkADAALACIACwALAAkACgBGATwA2AAKAAkACwAIAA0ANAAMAAoACQAMAAkACQAJACcACgBlAAkAHAAJAGkAsQAKAGYACwAMADwADwAcAAwAEgANAA0ACgALAAkADQAKACwADQBpAC8ACwALAAkADgBRAAsACgAIAAEBCQA0AAoACgALAAsACgAMACwADQELAAsACQALAAkACwAKAA0ADAAMAAoACwANAAwADAAKAAgACwALAAwACgAJAAoACwAJAAoA"},"y0":" ","yaxis":"y","type":"box"},{"alignmentgroup":"True","boxpoints":"all","hovertemplate":"dns_name=%{x}\u003cbr\u003elatency_ms=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"Linkfort_4","marker":{"color":"#FF6692"},"name":"Linkfort_4","notched":false,"offsetgroup":"Linkfort_4","orientation":"v","showlegend":true,"x":["Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4","Linkfort_4"],"x0":" ","xaxis":"x","y":{"dtype":"i2","bdata":"CAAKABEACwAMAAkACgAMAB4ACgAKAAsACwAJAAgACwANAJwACQAJAAwACQAkAAoACwAMAAwADAAJAAoACwAJAAsACgAJAAkACwALAAoATgEJAFMBBgMNAAoACAALADcAQwAKANgADQAIAAoACwAKAGwAQwALANwAQgALAAwACQBKAA4ACAA8AAoA3gAKAHMACgALADYACQBbAAwACwANAAoACwByAAsADABRAAwACQBvAA8ACwAMAAwACwAMAAsACgBuAD0ADAALAAkA+QAKAAoACQAJAA0ACQAMAA4ACgAKAAoADgALAAoACwAJAAoACgALAA4ADgAKAAoADAALAAwADAALAAoA"},"y0":" ","yaxis":"y","type":"box"},{"alignmentgroup":"True","boxpoints":"all","hovertemplate":"dns_name=%{x}\u003cbr\u003elatency_ms=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"Google_Pri","marker":{"color":"#B6E880"},"name":"Google_Pri","notched":false,"offsetgroup":"Google_Pri","orientation":"v","showlegend":true,"x":["Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri","Google_Pri"],"x0":" ","xaxis":"x","y":{"dtype":"i2","bdata":"LQAKAAkACQAKAAsAagALAAsAXgAMAAwACgAKAAkACQALAAwADAAKAAkAGwAMAAkADgAKACcACQDZAAwAVQAJAAoACwAWASsACgAMAA0ACwBsAA8ACwAKAAoACQAzAAkACwAJAAwACwA1AAgADQBbAD0ADAAKABAACQALAB0BCgAJAAsACgAKAAoANAEMAAwACwAYAAsAZQALADcADADeAAkACgAKAA0ACwAMAAgACwAJAA8BYgAKAHEADAAJAAsACAA3AHMBCgAMAAkACgAMAAgACgALAAoADAAKAAwACAAOAAoACgAJAAoACwAKAA0ACQALAAsACwAJAAsACgALAAkACQALAAkA"},"y0":" ","yaxis":"y","type":"box"},{"alignmentgroup":"True","boxpoints":"all","hovertemplate":"dns_name=%{x}\u003cbr\u003elatency_ms=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"Linkfort_3","marker":{"color":"#FF97FF"},"name":"Linkfort_3","notched":false,"offsetgroup":"Linkfort_3","orientation":"v","showlegend":true,"x":["Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3","Linkfort_3"],"x0":" ","xaxis":"x","y":{"dtype":"i2","bdata":"NgAKAAsACgEJABcADAD\u002fAAoAEwAMAAkADAAMAA0ACgANAAwAGAAFAQsACwANAB8ADgAJAAoACgAKAFUADQBfAAkAlwANAAoAMgA\u002fAAsADAALAAsADAAJACEACQALAAoACQDzAAoAGwAMABUACgBiAAsADADYAA0ACAAKAAkARAALAAsACQAMABIACwAJAAsARwAKAAkAPQAKADwACgAMAD4ADAAyAAoARgAKAAoAEAAKAAkACwALAAsADAAIAAkACQAMAAkADQANAAsABwAKAA4ACwALAAoACwALAAoACAALAA0ACQAMAA0ACQAJAAoACgA="},"y0":" ","yaxis":"y","type":"box"},{"alignmentgroup":"True","boxpoints":"all","hovertemplate":"dns_name=%{x}\u003cbr\u003elatency_ms=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"Linkfort_1","marker":{"color":"#FECB52"},"name":"Linkfort_1","notched":false,"offsetgroup":"Linkfort_1","orientation":"v","showlegend":true,"x":["Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1","Linkfort_1"],"x0":" ","xaxis":"x","y":{"dtype":"i2","bdata":"CwAKAPIADAAIAEgBCwASAAYBDAAiAE0ADABmAAoACgAOAAkACwAIAAsACgARAAsADQAKABsACgBVAAsADAALACgACgALAHMADAALAA4ACgAMAA0ACgAnAQkA\u002fAAKAAkADAAMAAoACgAKABIACwA+AD0ACAALAAwAXAA6AAoACwAKAA0AbAAKAGEADAAPAAsAZgALANoACQAKABMACwBSAHMADAALAAwACwALAAkACwAKAAgACgAKAAgACgALAAkACwAKAAwACQALAAsACQAMAAsACgAKAAsADAARAAkACgAKAAoACwAJAAoADQAIAAsACgA="},"y0":" ","yaxis":"y","type":"box"},{"alignmentgroup":"True","boxpoints":"all","hovertemplate":"dns_name=%{x}\u003cbr\u003elatency_ms=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"Linkfort_8","marker":{"color":"#636efa"},"name":"Linkfort_8","notched":false,"offsetgroup":"Linkfort_8","orientation":"v","showlegend":true,"x":["Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8","Linkfort_8"],"x0":" ","xaxis":"x","y":{"dtype":"i2","bdata":"DAEKAAYBBwAjAAsACgALAAkACwAJAAoAQgAKAAkACgAKADQAMAALAAwAMwAaAD0DHgALACkACgAMAAoACgAlAAoAWAA+ACAAMwAKAAoAVgAJAAoACAALAO4ATgAJAAsAGwAJABEACwAKAAsACwA7AAsAawALABAAMAAMAAgADQBjAAoAMAAKANgACwAKAOEADAC6AQsARwALACEACgAKAAgAbQAMAAkAHQAKAAsACwALAAsACgAMAAwACQAKAAoADAAHAAoADQAKAAsACwAKAA0ACwAJAAoACQAKAAoACQAMAAwADQAMAAoACgAMAAoADAA="},"y0":" ","yaxis":"y","type":"box"},{"alignmentgroup":"True","boxpoints":"all","hovertemplate":"dns_name=%{x}\u003cbr\u003elatency_ms=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"Cloudflare_Sec","marker":{"color":"#EF553B"},"name":"Cloudflare_Sec","notched":false,"offsetgroup":"Cloudflare_Sec","orientation":"v","showlegend":true,"x":["Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec","Cloudflare_Sec"],"x0":" ","xaxis":"x","y":{"dtype":"i2","bdata":"CwAJAAsACgALAO0ACwAKAPUA8QALAAoADAAIAAwADAALAI8ACwAIAAwAEgAOAAoACwDqAAwAaQAKAAoACQAgAB4ACgAMAAsAagALAAcARwBBAEUBCgAJAAsAMwAKAQoACgAvAAsADAAqAAsAlQAJAAoACQAKAAkADwAKAAwACAAKAAsACwALAAoACQANABsACgALAAwALQALAGcACQAKAEEACgBvADwACgAJADUACgALAAsACQALAAsACgALAA0ACwAJAB8ACgALAAoADAAMAAsADAAKAAwADQAKAAkACwAIAAsACwAKAAoABwALAAsACgA="},"y0":" ","yaxis":"y","type":"box"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"marker":{"line":{"color":"#283442"}},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#f2f5fa"},"error_y":{"color":"#f2f5fa"},"marker":{"line":{"color":"rgb(17,17,17)","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"marker":{"line":{"color":"#283442"}},"type":"scattergl"}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#A2B1C6","gridcolor":"#506784","linecolor":"#506784","minorgridcolor":"#506784","startlinecolor":"#A2B1C6"},"baxis":{"endlinecolor":"#A2B1C6","gridcolor":"#506784","linecolor":"#506784","minorgridcolor":"#506784","startlinecolor":"#A2B1C6"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#506784"},"line":{"color":"rgb(17,17,17)"}},"header":{"fill":{"color":"#2a3f5f"},"line":{"color":"rgb(17,17,17)"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"rgb(17,17,17)","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#f2f5fa"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"rgb(17,17,17)","plot_bgcolor":"rgb(17,17,17)","polar":{"bgcolor":"rgb(17,17,17)","angularaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"radialaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""}},"ternary":{"bgcolor":"rgb(17,17,17)","aaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"baxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"caxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"#283442","linecolor":"#506784","ticks":"","title":{"standoff":15},"zerolinecolor":"#283442","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"#283442","linecolor":"#506784","ticks":"","title":{"standoff":15},"zerolinecolor":"#283442","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3","gridwidth":2},"yaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3","gridwidth":2},"zaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3","gridwidth":2}},"shapedefaults":{"line":{"color":"#f2f5fa"}},"annotationdefaults":{"arrowcolor":"#f2f5fa","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"rgb(17,17,17)","landcolor":"rgb(17,17,17)","subunitcolor":"#506784","showland":true,"showlakes":true,"lakecolor":"rgb(17,17,17)"},"title":{"x":0.05},"updatemenudefaults":{"bgcolor":"#506784","borderwidth":0},"sliderdefaults":{"bgcolor":"#C8D4E3","borderwidth":1,"bordercolor":"rgb(17,17,17)","tickwidth":0},"mapbox":{"style":"dark"}}},"xaxis":{"anchor":"y","domain":[0.0,1.0],"title":{"text":"dns_name"},"categoryorder":"array","categoryarray":["Google_Sec","Cloudflare_Pri","Linkfort_7","Linkfort_6","Linkfort_5","Linkfort_2","Linkfort_4","Google_Pri","Linkfort_3","Linkfort_1","Linkfort_8","Cloudflare_Sec"]},"yaxis":{"anchor":"x","domain":[0.0,1.0],"title":{"text":"latency_ms"}},"legend":{"title":{"text":"dns_name"},"tracegroupgap":0},"title":{"text":"Estabilidade de Lat\u00eancia (Menor \u00e9 melhor)"},"boxmode":"overlay","font":{"family":"Inter"},"paper_bgcolor":"rgba(0,0,0,0)","plot_bgcolor":"rgba(0,0,0,0)","showlegend":false},                        {"responsive": true}                    )                };            </script>        </div>
+                </div>
+            </section>
+            
+            <footer>
+                Linkfort V3.4 • Powered by Python 
+            </footer>
+        </div>
+    </body>
+    </html>
+    

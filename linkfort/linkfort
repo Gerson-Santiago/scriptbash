@@ -100,20 +100,48 @@ elif [[ "$1" == "--collect" && -n "$2" ]]; then
     echo "[3/4] Coletando dados ($2 rodadas)..."
     chmod +x "$BASE_DIR/monitor_dados.sh"
     "$BASE_DIR/monitor_dados.sh" --count "$2"
+    
+    echo "========================================="
+    echo "🚀 Coleta finalizada! Iniciando Servidor Web..."
+    echo "========================================="
+    python3 "$BASE_DIR/serve.py"
 
 elif [[ "$1" =~ ^[0-9]+$ ]]; then
     # --- MODO COLETA (Shorthand) ---
-    echo "[3/4] Coletando dados ($1 rodadas)..."
+    # Cálculo simples de estimativa: ~80s por rodada (12 IPs * 11 Domínios * 0.5s sleep + overhead)
+    ESTIMATED_MIN=$(echo "$1 * 80 / 60" | bc)
+    
+    echo "[3/4] Coletando dados (Target: $1 rodadas)..."
+    
+    if [ "$1" -gt 5 ]; then
+        echo "   ⚠️  ATENÇÃO: Isso pode levar aprox. $ESTIMATED_MIN minutos."
+        echo "   ☕ O servidor só inicia APÓS o fim da coleta."
+        echo "   💡 Dica: Para ver em tempo real, use: ./linkfort --live"
+        sleep 2
+    fi
+    
     chmod +x "$BASE_DIR/monitor_dados.sh"
     "$BASE_DIR/monitor_dados.sh" --count "$1"
+    
+    # Auto-start do servidor após coleta
+    echo "========================================="
+    echo "🚀 Coleta finalizada! Iniciando Servidor Web..."
+    echo "========================================="
+    python3 "$BASE_DIR/serve.py"
 
 elif [[ "$1" == "--reset" || "$1" == "-r" ]]; then
     # --- MODO RESET ---
     echo "[3/4] Resetando dados..."
     rm -f "$BASE_DIR/dados_dns_linkfort.csv"
     rm -f "$BASE_DIR/dashboard.html"
-    echo "✅ Dados históricos e dashboard apagados com sucesso."
-    echo "   Pronto para iniciar uma nova coleta limpa."
+    echo "✅ [RESET COMPLETO]"
+    echo "   Arquivos removidos:"
+    echo "   🗑️  dados_dns_linkfort.csv (Histórico)"
+    echo "   🗑️  dashboard.html         (Relatório)"
+    echo ""
+    echo "   🔄 Para refazer tudo (coletar novos dados):"
+    echo "      ./linkfort 50     (Recomendado)"
+    echo "      ./linkfort --test (Teste rápido)"
 
 else
     # --- MODO APENAS DASHBOARD ---

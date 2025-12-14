@@ -62,6 +62,7 @@ Executa `N` rodadas para maior precisão estatística.
 # ou
 ./linkfort --collect 100
 ```
+> **⏳ Estimativa de Tempo:** O script calculará e avisará o tempo previsto. O servidor web abre automaticamente ao final.
 
 ### Apenas Visualizar (Sem Coletar)
 Regenera o gráfico com os dados atuais e inicia o servidor.
@@ -71,6 +72,8 @@ Regenera o gráfico com os dados atuais e inicia o servidor.
 
 ### 🧹 Limpar Dados
 Apaga todo o histórico de testes e o dashboard, permitindo começar do zero.
+> **Nota de Segurança:** Não se preocupe em recriar arquivos. O próximo comando de coleta (ex: `./linkfort 50`) reconstruirá automaticamente tudo o que for necessário.
+
 ```bash
 ./linkfort --reset
 ```

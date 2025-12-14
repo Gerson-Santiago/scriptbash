@@ -45,7 +45,9 @@ graph TD
 ### 🚀 Orquestração (`linkfort`)
 O ponto de entrada único do sistema (antigo `run_all.sh`).
 - **Função**: CLI Unificada.
-- **Responsabilidades**: Configurar ambiente, gerenciar processos (Monitor+Server), e limpar recursos.
+- **Responsabilidades**:
+    - **Diagnóstico**: Verifica versões de Python/Pip e integridade do venv na inicialização.
+    - **Gestão**: Controla processos (Monitor+Server), estima tempo de coleta e realiza Reset de dados.
 
 ### 📡 Coleta (`monitor_dados.sh`)
 O worker de I/O.
@@ -63,6 +65,12 @@ O entregador de experiência.
 - **Tecnologia**: Python `http.server`.
 - **Porta**: 7777.
 - **UX**: Banner ASCII no terminal e abertura automática do navegador padrão.
+    
+### 🛡️ Resiliência e Auto-Healing
+O sistema é projetado para ser **Stateless** na inicialização:
+- Se `dados_dns_linkfort.csv` não existir (pós-reset), ele é recriado automaticamente com os headers corretos.
+- Se `dashboard.html` não existir, ele é gerado do zero na próxima análise.
+- **Conclusão:** O comando `--reset` é seguro pois o sistema sabe se reconstruir.
 
 ## 💾 Fluxo de Dados Final
 
@@ -71,3 +79,4 @@ O entregador de experiência.
 3.  **Renderização**: Python constrói string HTML com CSS "Glass" e Gráficos.
 4.  **Persistência**: Gravação de `dashboard.html`.
 5.  **Entrega**: Servidor HTTP disponibiliza arquivo e invoca cliente (Browser).
+6.  **Manutenção**: Comando `--reset` permite purgar dados históricos para novos ciclos de teste.

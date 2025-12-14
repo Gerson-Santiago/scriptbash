@@ -77,8 +77,12 @@ while [ "$COUNT" -eq -1 ] || [ "$ITERATION" -lt "$COUNT" ]; do
             
             # Sleep moderado para não saturar buffer (Subhost mitigation)
             sleep 0.5
+            
+            # Feedback visual (printa um ponto sem quebra de linha)
+            echo -n "."
         done
     done
+    echo "" # Quebra linha após os pontos
     
     echo "   -> Rodada concluída. Atualizando Dashboard..."
     

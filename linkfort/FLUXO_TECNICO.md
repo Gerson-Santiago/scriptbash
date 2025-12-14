@@ -7,6 +7,10 @@ Este documento detalha a arquitetura de engenharia de dados utilizada para o ben
 ## 🏗️ Arquitetura da Solução
 
 O sistema opera em um ciclo fechado de **Coleta Contínua** e **Análise Estatística**.
+A versão 3.4 introduz um ciclo de vida de operação explícito:
+1.  **Limpeza (`--reset`)**: Garante estado zero.
+2.  **Coleta (`N` ou `--live`)**: Ingestão de dados com feedback de tempo estimado.
+3.  **Visualização (Auto-Server)**: Entrega imediata do dashboard pós-coleta.
 
 ### Diagrama de Fluxo
 
@@ -50,7 +54,7 @@ graph TD
 
 | Componente | Arquivo | Tecnologia | Responsabilidade |
 | :--- | :--- | :--- | :--- |
-| **CLI** | `linkfort` | Bash Orchestrator | Centraliza execução, setup e modo Live (Monitor + Server). |
+| **CLI** | `linkfort` | Bash Orquestrador | Centraliza execução, setup (venv/check), Reset de dados e modo Live (Monitor + Server). Implementa UX com estimativa de tempo. |
 | **Worker** | `monitor_dados.sh` | Bash, Dig | Executar milhões de consultas com baixo overhead. Prioriza I/O e precisão. |
 | **Storage** | `dados_dns_linkfort.csv` | CSV | Armazenamento de séries temporais brutas. Schema: `timestamp,dns_name,ip,domain,latency,status` |
 | **Analytics** | `gerar_dashboard.py` | Python, Pandas | Processamento estatístico pesado, rejeição de outliers e cálculo de Score. |
