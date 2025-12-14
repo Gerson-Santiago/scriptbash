@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.pyc
+
+# Virtual Environment
+.venv/
+venv/
+env/
+
+# Data & Output
+output/
+*.csv
+!dados_dns_linkfort.csv
+
+# System
+.DS_Store
+.env

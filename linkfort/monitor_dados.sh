@@ -1,131 +1,128 @@
-#!/bin/bash
-set -u
+#!/usr/bin/env bash
+# ==========================================================
+# MONITOR DE PERFORMANCE DNS
+# ==========================================================
 
-############################################
+set -euo pipefail
+
+# -------------------------
 # CONFIGURAÇÕES
-############################################
+# -------------------------
+DURACAO_MINUTOS=60
+INTERVALO_SEGUNDOS=60
 
-DOMINIO_TESTE="google.com"
-INTERVALO=60            # segundos
-DURACAO_TOTAL=3600      # 1 hora
-AMOSTRAS=3
+BASE_DIR="/home/sant/scriptbash/linkfort"
+CSV="$BASE_DIR/dados_dns_linkfort.csv"
 
-CSV="$HOME/scriptbash/dados_dns_linkfort.csv"
-
-DNS_SERVERS=(
-  "138.97.220.58"
-  "138.97.220.62"
-  "138.97.220.57"
-  "138.97.220.60"
-  "138.97.220.65"
-  "138.97.220.66"
-  "138.97.220.69"
-  "138.97.220.70"
-  "8.8.8.8"
-  "8.8.4.4"
-  "1.1.1.1"
-  "1.0.0.1"
-  "9.9.9.9"
-  "149.112.112.112"
+DOMINIOS=(
+  bertioga.sp.gov.br
+  google.com
+  linkfort.com.br
+  sei.univesp.br
 )
 
-############################################
-# FUNÇÕES DE DEPENDÊNCIA
-############################################
+DNS_SERVERS=(
+  138.97.220.57
+  138.97.220.58
+  138.97.220.60
+  138.97.220.62
+  138.97.220.65
+  138.97.220.66
+  138.97.220.69
+  138.97.220.70
+  8.8.8.8
+  8.8.4.4
+  1.1.1.1
+  1.0.0.1
+  208.67.222.222
+  208.67.220.220
+  9.9.9.9
+  149.112.112.112
+)
 
-verificar_comando() {
-  command -v "$1" >/dev/null 2>&1
-}
+# -------------------------
+# DEPENDÊNCIAS
+# -------------------------
+command -v dig >/dev/null || { echo "Erro: dig não encontrado"; exit 1; }
+command -v awk >/dev/null || { echo "Erro: awk não encontrado"; exit 1; }
 
-instalar_pacote() {
-  local pacote="$1"
-
-  echo ">> Instalando pacote necessário: $pacote"
-  sudo apt update -y >/dev/null
-  sudo apt install -y "$pacote"
-}
-
-verificar_dependencias() {
-  echo ">> Verificando dependências..."
-
-  if ! verificar_comando dig; then
-    instalar_pacote dnsutils
-  fi
-
-  if ! verificar_comando bc; then
-    instalar_pacote bc
-  fi
-
-  echo ">> Dependências OK"
-}
-
-############################################
-# FUNÇÕES PRINCIPAIS
-############################################
-
-media_tempo_dns() {
-  local dns="$1"
-  local soma=0
-  local sucesso=0
-
-  for ((i=1; i<=AMOSTRAS; i++)); do
-    local tempo
-    tempo=$(dig @"$dns" "$DOMINIO_TESTE" +stats +time=2 +tries=1 \
-      | awk '/Query time/ {print $4}')
-
-    if [[ "$tempo" =~ ^[0-9]+$ ]]; then
-      soma=$(echo "$soma + $tempo" | bc)
-      sucesso=$((sucesso + 1))
-    fi
-  done
-
-  if [[ $sucesso -gt 0 ]]; then
-    echo "scale=2; $soma / $sucesso" | bc
-  else
-    echo ""
-  fi
-}
-
-############################################
-# EXECUÇÃO
-############################################
-
-verificar_dependencias
-
-echo "=== Iniciando Coleta de Performance DNS ==="
-echo "Duração: 1h | Intervalo: 1min"
-echo "Amostras por DNS: $AMOSTRAS"
-echo "Domínio de teste: $DOMINIO_TESTE"
-echo "CSV: $CSV"
-echo
-
-if [[ ! -f "$CSV" ]]; then
-  echo "timestamp,dns,tempo_ms" > "$CSV"
+# -------------------------
+# CABEÇALHO CSV
+# -------------------------
+if [ ! -f "$CSV" ]; then
+  echo "data_hora,dns,dominio,req,tempo_ms" > "$CSV"
 fi
 
-INICIO=$(date +%s)
+# -------------------------
+# FUNÇÕES
+# -------------------------
+resolver_dns() {
+  local dns="$1"
+  local dominio="$2"
 
-while true; do
-  AGORA=$(date +%s)
-  [[ $((AGORA - INICIO)) -ge $DURACAO_TOTAL ]] && break
+  dig @"$dns" "$dominio" A \
+    +tries=1 +timeout=1 +stats \
+    2>/dev/null | awk '/Query time/ {print $4}'
+}
 
-  TIMESTAMP=$(date "+%Y-%m-%d %H:%M")
+registrar_csv() {
+  local datahora="$1"
+  local dns="$2"
+  local dominio="$3"
+  local req="$4"
+  local tempo="$5"
 
-  echo "--- Teste às $TIMESTAMP ---"
+  echo "$datahora,$dns,$dominio,$req,${tempo:-timeout}" >> "$CSV"
+}
 
-  for dns in "${DNS_SERVERS[@]}"; do
-    media=$(media_tempo_dns "$dns")
+log_terminal() {
+  local loop="$1"
+  local dns="$2"
+  local dominio="$3"
+  local r1="$4"
+  local r2="$5"
 
-    if [[ -n "$media" ]]; then
-      echo "   $dns | ${media} ms ($AMOSTRAS/$AMOSTRAS)"
-      echo "$TIMESTAMP,$dns,$media" >> "$CSV"
-    else
-      echo "   $dns | timeout"
-      echo "$TIMESTAMP,$dns," >> "$CSV"
-    fi
+  echo "[loop $loop] DNS $dns | $dominio | req1: ${r1:-timeout} ms | req2: ${r2:-timeout} ms"
+}
+
+# -------------------------
+# BANNER
+# -------------------------
+echo "=========================================="
+echo "   BENCHMARK DNS – COLETA DE PERFORMANCE"
+echo "=========================================="
+echo "Diretório base    : $BASE_DIR"
+echo "Arquivo CSV       : $CSV"
+echo "Duração total     : $DURACAO_MINUTOS minuto(s)"
+echo "Intervalo         : $INTERVALO_SEGUNDOS segundo(s)"
+echo "Domínios          : ${#DOMINIOS[@]}"
+echo "Servidores DNS    : ${#DNS_SERVERS[@]}"
+echo
+
+# -------------------------
+# LOOP PRINCIPAL
+# -------------------------
+for ((loop=1; loop<=DURACAO_MINUTOS; loop++)); do
+  DATA_HORA=$(date "+%Y-%m-%d %H:%M")
+  echo "--- Loop $loop | $DATA_HORA ---"
+
+  for dominio in "${DOMINIOS[@]}"; do
+    for dns in "${DNS_SERVERS[@]}"; do
+
+      req1=$(resolver_dns "$dns" "$dominio")
+      sleep 1
+      req2=$(resolver_dns "$dns" "$dominio")
+
+      log_terminal "$loop" "$dns" "$dominio" "$req1" "$req2"
+
+      registrar_csv "$DATA_HORA" "$dns" "$dominio" "req1" "$req1"
+      registrar_csv "$DATA_HORA" "$dns" "$dominio" "req2" "$req2"
+
+    done
   done
 
-  echo "Dados salvos. Próximo ciclo em $((INTERVALO / 60)) minuto(s)."
-  echo
-  sleep "$INTERVALO"
+  [ "$loop" -lt "$DURACAO_MINUTOS" ] && sleep "$INTERVALO_SEGUNDOS"
 done
+
+echo
+echo ">> Coleta finalizada."
