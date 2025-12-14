@@ -15,7 +15,8 @@ THEME = {
     'accent': '#38bdf8',    # Sky 400
     'success': '#4ade80',   # Green 400
     'danger': '#f87171',    # Red 400
-    'border': '#334155'     # Slate 700
+    'border': '#334155',    # Slate 700
+    'subtle': '#64748b'     # Slate 500
 }
 
 INPUT_FILE = "dados_dns_linkfort.csv"
@@ -88,12 +89,41 @@ def calculate_metrics(df):
         
     return pd.DataFrame(results).sort_values(by='Score', ascending=False)
 
-def build_html_template(metrics_html, chart1_html, chart2_html, top_dns):
+def calculate_domain_winners(df):
+    """
+    Identifica o melhor DNS para cada domínio testado (baseado em mediana).
+    """
+    domain_winners = []
+    
+    # Filtra apenas sucessos
+    success_df = df[df['status'] == 'OK']
+    domains = success_df['domain'].unique()
+    
+    for domain in domains:
+        domain_df = success_df[success_df['domain'] == domain]
+        
+        # Calcula mediana por DNS para este domínio
+        grouped = domain_df.groupby(['dns_name', 'dns_ip'])['latency_ms'].median().reset_index()
+        grouped = grouped.sort_values(by='latency_ms')
+        
+        if not grouped.empty:
+            winner = grouped.iloc[0]
+            domain_winners.append({
+                'Domain': domain,
+                'Best DNS': winner['dns_name'],
+                'IP': winner['dns_ip'],
+                'Median Latency': f"{winner['latency_ms']:.1f} ms"
+            })
+            
+    return pd.DataFrame(domain_winners)
+
+def build_html_template(metrics_html, domain_html, chart1_html, chart2_html, top_dns, all_domains):
     """
     Constrói um HTML moderno e responsivo com CSS injetado.
     """
     
     generated_at = datetime.datetime.now().strftime("%d/%m/%Y %H:%M")
+    domains_str = ", ".join(all_domains)
     
     ranking_cards = ""
     medals = ["🥇", "🥈", "🥉"]
@@ -126,6 +156,7 @@ def build_html_template(metrics_html, chart1_html, chart2_html, top_dns):
             --text-color: {THEME['text']};
             --accent-color: {THEME['accent']};
             --border-color: {THEME['border']};
+            --subtle-color: {THEME['subtle']};
         }}
         
         body {{
@@ -158,10 +189,39 @@ def build_html_template(metrics_html, chart1_html, chart2_html, top_dns):
             -webkit-text-fill-color: transparent;
         }}
         
+        .live-indicator {{
+            display: inline-block;
+            background-color: rgba(220, 38, 38, 0.2);
+            color: #ef4444;
+            font-weight: bold;
+            font-size: 0.8rem;
+            padding: 4px 12px;
+            border-radius: 999px;
+            border: 1px solid #ef4444;
+            margin-bottom: 10px;
+            animation: pulse 2s infinite;
+        }}
+        
+        @keyframes pulse {{
+            0% {{ opacity: 1; box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }}
+            70% {{ opacity: 0.7; box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }}
+            100% {{ opacity: 1; box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }}
+        }}
+
         .subtitle {{
-            color: #94a3b8;
+            color: var(--subtle-color);
             font-size: 0.9rem;
             margin-top: 10px;
+        }}
+        
+        .domains-list {{
+            margin-top: 15px;
+            font-size: 0.8rem;
+            color: var(--accent-color);
+            background: rgba(56, 189, 248, 0.1);
+            padding: 8px 16px;
+            border-radius: 999px;
+            display: inline-block;
         }}
         
         /* Cards */
@@ -192,7 +252,7 @@ def build_html_template(metrics_html, chart1_html, chart2_html, top_dns):
         
         h3 {{ margin: 10px 0; font-size: 1.5rem; }}
         
-        .ip {{ font-family: 'JetBrains Mono', monospace; color: #94a3b8; background: #0f172a; padding: 4px 8px; border-radius: 4px; display: inline-block; }}
+        .ip {{ font-family: 'JetBrains Mono', monospace; color: var(--subtle-color); background: #0f172a; padding: 4px 8px; border-radius: 4px; display: inline-block; }}
         
         .score-badge {{
             display: inline-block;
@@ -211,6 +271,14 @@ def build_html_template(metrics_html, chart1_html, chart2_html, top_dns):
             border-top: 1px solid var(--border-color);
             padding-top: 15px;
             font-size: 0.9rem;
+        }}
+        
+        /* Section Titles */
+        h2 {{
+            border-left: 4px solid var(--accent-color);
+            padding-left: 15px;
+            margin-bottom: 20px;
+            color: var(--text-color);
         }}
         
         /* Table */
@@ -235,7 +303,7 @@ def build_html_template(metrics_html, chart1_html, chart2_html, top_dns):
         
         th {{
             background: #0f172a;
-            color: #94a3b8;
+            color: var(--subtle-color);
             font-weight: 600;
             text-transform: uppercase;
             font-size: 0.8rem;
@@ -244,6 +312,28 @@ def build_html_template(metrics_html, chart1_html, chart2_html, top_dns):
         
         tr:last-child td {{ border-bottom: none; }}
         tr:hover {{ background: rgba(56, 189, 248, 0.05); }}
+        
+        /* Domain Grid */
+        .domain-grid {{
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+            margin-bottom: 40px;
+        }}
+        
+        .domain-card {{
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }}
+        
+        .domain-name {{ font-weight: bold; font-size: 1.1rem; color: var(--accent-color); }}
+        .winner-name {{ font-size: 0.9rem; color: var(--text-color); margin-top: 4px; }}
+        .winner-lat {{ font-size: 0.85rem; color: var(--success); font-family: 'JetBrains Mono', monospace; }}
         
         /* Charts */
         .chart-container {{
@@ -256,7 +346,7 @@ def build_html_template(metrics_html, chart1_html, chart2_html, top_dns):
         
         footer {{
             text-align: center;
-            color: #64748b;
+            color: var(--subtle-color);
             font-size: 0.8rem;
             margin-top: 60px;
             padding-bottom: 20px;
@@ -264,30 +354,44 @@ def build_html_template(metrics_html, chart1_html, chart2_html, top_dns):
     </style>
     """
     
+    # Gerar HTML dos cards de domínio (alternativa à tabela)
+    # Mas como o usuário pediu "listagem", também podemos usar a tabela.
+    # Vamos usar tabela para manter consistência com o pedido.
+    
     html = f"""
     <!DOCTYPE html>
     <html lang="pt-BR">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="refresh" content="5"> <!-- Auto-Refresh a cada 5s (V3.4) -->
         <title>Linkfort DNS Intelligence</title>
         {css}
     </head>
     <body>
         <div class="container">
             <header>
+                <div class="live-indicator">🔴 AO VIVO</div>
                 <h1>Linkfort DNS Intelligence</h1>
                 <div class="subtitle">Relatório de Performance de Rede • Gerado em {generated_at}</div>
+                <div class="domains-list">🌐 Testados: {domains_str}</div>
             </header>
             
             <section class="winners-section">
                 {ranking_cards}
             </section>
             
+            <h2>🏆 Campeões por Site</h2>
+            <section class="table-container">
+                {domain_html}
+            </section>
+            
+            <h2>📊 Ranking Geral</h2>
             <section class="table-container">
                 {metrics_html}
             </section>
             
+            <h2>📈 Análise Visual</h2>
             <section class="charts-grid">
                 <div class="chart-container">
                     {chart1_html}
@@ -298,7 +402,7 @@ def build_html_template(metrics_html, chart1_html, chart2_html, top_dns):
             </section>
             
             <footer>
-                Linkfort V3.1 • Powered by Python & Plotly • Developed by Antigravity
+                Linkfort V3.3 • Powered by Python & Plotly • Developed by Antigravity
             </footer>
         </div>
     </body>
@@ -306,7 +410,7 @@ def build_html_template(metrics_html, chart1_html, chart2_html, top_dns):
     """
     return html
 
-def generate_report(metrics_df, raw_df):
+def generate_report(metrics_df, domain_df, raw_df):
     
     # 1. Gráficos Plotly customizados
     fig_bar = px.bar(metrics_df, x='DNS Name', y='Score', color='Score', 
@@ -320,20 +424,23 @@ def generate_report(metrics_df, raw_df):
     fig_box.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_family="Inter", showlegend=False)
 
     # 2. Gerar HTML dos componentes
-    # Tabela HTML limpa (sem classes do pandas)
-    table_html = metrics_html = metrics_df.to_html(index=False, border=0, classes="")
+    table_metrics_html = metrics_df.to_html(index=False, border=0, classes="")
+    table_domain_html = domain_df.to_html(index=False, border=0, classes="")
     
     chart1 = fig_bar.to_html(full_html=False, include_plotlyjs='cdn')
     chart2 = fig_box.to_html(full_html=False, include_plotlyjs='cdn')
     
+    # Lista de domínios
+    all_domains = raw_df['domain'].sort_values().unique()
+    
     # 3. Montar página completa
-    full_html = build_html_template(table_html, chart1, chart2, metrics_df.head(3))
+    full_html = build_html_template(table_metrics_html, table_domain_html, chart1, chart2, metrics_df.head(3), all_domains)
     
     with open(OUTPUT_HTML, 'w', encoding='utf-8') as f:
         f.write(full_html)
     
     print("\n" + "="*40)
-    print(f"✨ Dashboard Premium gerado: {OUTPUT_HTML}")
+    print(f"✨ Dashboard Premium V3.3 gerado: {OUTPUT_HTML}")
     print("="*40)
 
 def main():
@@ -343,7 +450,9 @@ def main():
         return
 
     metrics = calculate_metrics(df)
-    generate_report(metrics, df)
+    domain_winners = calculate_domain_winners(df)
+    
+    generate_report(metrics, domain_winners, df)
 
 if __name__ == "__main__":
     main()

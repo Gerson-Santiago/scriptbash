@@ -4,7 +4,7 @@
 # Arquitetura: Coleta (Bash) -> CSV -> Análise (Python)
 
 OUTPUT_FILE="dados_dns_linkfort.csv"
-DOMAINS=("google.com" "amazon.com" "facebook.com" "uol.com.br" "netflix.com")
+DOMAINS=("google.com" "amazon.com" "facebook.com" "uol.com.br" "netflix.com" "chatgpt.com" "gemini.google.com" "canva.com" "sei.univesp.br" "bertioga.sp.gov.br" "youtube.com")
 
 # Mapa de DNS (Array associativo requer Bash 4+)
 declare -A DNS_MAP
@@ -34,7 +34,8 @@ if [[ "$1" == "--help" ]]; then
 fi
 
 # Configuração de repetição
-COUNT=-1 # Infinito
+# Default: 1 (Para evitar loop infinito acidental se não passar nada)
+COUNT=1 
 if [[ "$1" == "--count" && -n "$2" ]]; then
     COUNT=$2
 fi
@@ -78,8 +79,13 @@ while [ "$COUNT" -eq -1 ] || [ "$ITERATION" -lt "$COUNT" ]; do
         done
     done
     
-    echo "   -> Rodada concluída. Aguardando..."
-    sleep 5
+    echo "   -> Rodada concluída. Atualizando Dashboard..."
+    
+    # V3.4: Auto-Update do Dashboard
+    # Executa o gerador silenciosamente para atualizar o HTML
+    python3 "$BASE_DIR/gerar_dashboard.py" > /dev/null 2>&1 &
+    
+    sleep 0.5
 done
 
 echo "Coleta finalizada ($ITERATION rodadas)."
