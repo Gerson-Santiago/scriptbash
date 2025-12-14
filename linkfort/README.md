@@ -55,9 +55,12 @@ Executa 1 rodada de testes e abre o dashboard.
 ```
 
 ### Rodar uma Coleta Estendida
-Executa 50 rodadas para maior precisão estatística.
+### Rodar uma Coleta Estendida
+Executa `N` rodadas para maior precisão estatística.
 ```bash
-./linkfort --collect 50
+./linkfort 100        # Exemplo: roda 100 vezes
+# ou
+./linkfort --collect 100
 ```
 
 ### Apenas Visualizar (Sem Coletar)

@@ -101,6 +101,12 @@ elif [[ "$1" == "--collect" && -n "$2" ]]; then
     chmod +x "$BASE_DIR/monitor_dados.sh"
     "$BASE_DIR/monitor_dados.sh" --count "$2"
 
+elif [[ "$1" =~ ^[0-9]+$ ]]; then
+    # --- MODO COLETA (Shorthand) ---
+    echo "[3/4] Coletando dados ($1 rodadas)..."
+    chmod +x "$BASE_DIR/monitor_dados.sh"
+    "$BASE_DIR/monitor_dados.sh" --count "$1"
+
 elif [[ "$1" == "--reset" || "$1" == "-r" ]]; then
     # --- MODO RESET ---
     echo "[3/4] Resetando dados..."
@@ -111,6 +117,16 @@ elif [[ "$1" == "--reset" || "$1" == "-r" ]]; then
 
 else
     # --- MODO APENAS DASHBOARD ---
+    
+    # Verifica se há dados antes de prosseguir
+    if [ ! -f "$BASE_DIR/dados_dns_linkfort.csv" ]; then
+        echo "⚠️  Nenhum dado encontrado para gerar dashboard."
+        echo "   Execute um teste primeiro. Exemplo:"
+        echo "   ./linkfort --test (Teste rápido)"
+        echo "   ./linkfort 50     (Coletar 50 rodadas)"
+        exit 0
+    fi
+    
     echo "[3/4] Gerando Dashboard com dados existentes..."
     python3 "$BASE_DIR/gerar_dashboard.py"
     
