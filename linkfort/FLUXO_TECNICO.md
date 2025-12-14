@@ -1,92 +1,80 @@
-# Fluxo do Projeto Linkfort e Análise Técnica
+# 🌐 Fluxo Técnico do Projeto Linkfort (V3.0)
 
-## Resumo do Fluxo
-O projeto consiste em um ciclo de coleta de dados de rede (DNS Benchmarking) seguido de processamento estatístico e visualização.
+Este documento detalha a arquitetura de engenharia de dados utilizada para o benchmarking de DNS do projeto Linkfort. A solução evoluiu para uma **Arquitetura Híbrida (Bash + Python)** para garantir precisão milimétrica em ambiente virtualizado.
 
-## Diagrama de Fluxo (Mermaid)
+---
+
+## 🏗️ Arquitetura da Solução
+
+O sistema opera em um ciclo fechado de **Coleta Contínua** e **Análise Estatística**.
+
+### Diagrama de Fluxo
 
 ```mermaid
 graph TD
-    subgraph Coleta [Camada de Coleta (Bash)]
-        A[Início: monitor_dados.sh] -->|Loop| B{Iterar Domínios}
-        B -->|Para cada DNS| C[Comando: dig]
-        C -->|Consulta A| D{Sucesso?}
-        D -- Sim --> E[Extrair Query Time]
-        D -- Não --> F[Registrar Timeout]
-        E --> G[Append: dados_dns_linkfort.csv]
-        F --> G
-        G --> H[Sleep Intervalo]
-        H --> A
+    subgraph Coleta [📡 Camada de Coleta (Bash)]
+        style Coleta fill:#e1f5fe,stroke:#01579b
+        A([Start: monitor_dados.sh]) -->|Loop Infinito| B{Iterar Lista DNS}
+        B -->|Executar Query| C[fa:fa-terminal Dig]
+        C -->|Raw Output| D[Normalizar Dados]
+        D -->|Append| E[(dados_dns_linkfort.csv)]
     end
 
-    subgraph Processamento [Camada de Análise (Python)]
-        I[dados_dns_linkfort.csv] -->|Input| J[Script: gerar_dashboard.py]
-        J --> K[Limpeza de Dados]
-        K --> L{Cálculo de Métricas}
-        L --> M[Média Simples]
-        L --> N[Estabilidade (Std Dev)]
-        L --> O[Score Algoritmo]
-        O --> P[Ranking Top 3]
+    subgraph Analise [📊 Camada de Analytics (Python)]
+        style Analise fill:#e8f5e9,stroke:#1b5e20
+        E -->|Leitura| F[gerar_dashboard.py]
+        F --> G[Limpeza & Parsing]
+        G --> H{Cálculo de Score V3.0}
+        H -->|Calcula P95| I[Penalidade de Cauda]
+        H -->|Calcula Mediana| J[Desempenho Típico]
+        H -->|Verifica Erros| K[Fator de Disponibilidade]
+        
+        I & J & K --> L[🏆 Ranking Final]
+        L --> M[Gerar dashboard.html]
     end
-
-    subgraph Visualizacao [Front-end Estático]
-        P --> Q[Gerar HTML + CSS]
-        L --> R[Gerar Gráficos Plotly]
-        Q --> S[Output: dashboard.html]
-        R --> S
-    end
-
-    G -.->|Gatilho Opcional| J
 ```
 
-## Análise de Limitações Técnicas ("Subhost")
+---
 
-Como o ambiente é um "Subhost" (Crostini/VM/Container), temos considerações estatísticas importantes:
+## 🔬 Componentes do Sistema
 
-1.  **Overhead de Virtualização**:
-    *   Toda requisição passa por NAT/Bridge do Host físico.
-    *   **Impacto**: Latências muito baixas (< 5ms) podem ser mascaradas pelo *overhead* do sistema operacional.
-    *   **Solução**: Ignorar diferenças menores que 5ms entre DNSs; considerar empate técnico.
+| Componente | Arquivo | Tecnologia | Responsabilidade |
+| :--- | :--- | :--- | :--- |
+| **Coleta** | [`monitor_dados.sh`](file:///home/sant/scriptbash/linkfort/monitor_dados.sh) | Bash, Dig | Executar milhões de consultas com baixo overhead. Prioriza I/O e precisão de timestamp. |
+| **Storage** | [`dados_dns_linkfort.csv`](file:///home/sant/scriptbash/linkfort/dados_dns_linkfort.csv) | CSV | Armazenamento de séries temporais brutas. Schema: `timestamp,dns_name,ip,domain,latency,status` |
+| **Analytics** | [`gerar_dashboard.py`](file:///home/sant/scriptbash/linkfort/gerar_dashboard.py) | Python, Pandas | Processamento estatístico pesado, rejeição de outliers e cálculo de Score. |
+| **View** | `dashboard.html` | HTML, Plotly | Visualização interativa dos resultados para tomada de decisão humana. |
 
-2.  **Jitter (Variabilidade)**:
-    *   VMs sofrem "roubo de CPU" momentâneo pelo Host.
-    *   **Impacto**: Picos de latência (outliers) que não são culpa do DNS, mas da VM travando por milissegundos.
-    *   **Solução Avaliada**: Usar Média simples foi descartado. Usar apenas Mediana foi o passo 2.
-    *   **Solução Final (v3.0)**: Usar **P95 (Percentil 95)** e **CV (Coeficiente de Variação)** para ignorar outliers mas penalizar instabilidade real.
+---
 
-3.  **Concorrência de Rede**:
-    *   O "Subhost" compartilha a placa de rede com o Host e outras VMs.
-    *   **Impacto**: Se o Host estiver fazendo download, a medição do DNS na VM piora.
+## 🧠 Algoritmo de Ranking (SLA Grade)
 
-## Algoritmo de Ranking (Analytics 3.0)
-O sistema evoluiu para um motor de decisão profissional ("SLA Grade").
+Para combater as limitações de um ambiente "Subhost" (Virtualizado), o algoritmo de ranking ignora a média simples e foca na consistência e estabilidade.
 
-### Métricas Principais
-| Métrica | Peso no Score | Propósito |
+### 📊 Tabela de Pesos e Métricas
+
+| Métrica | Peso | Descrição Técnica | Por que usar? |
+| :--- | :---: | :--- | :--- |
+| **P95 (Percentil 95)** | **50%** | Latência máxima experimentada por 95% das requisições. | Ignora os 5% de piores casos (outliers da VM) mas penaliza lentidão consistente. |
+| **Mediana (P50)** | **50%** | O valor central da distribuição de latência. | Representa a experiência "típica" do usuário, imune a picos extremos isolados no desvio padrão. |
+| **Taxa de Erro** | **Critical** | Porcentagem de falhas (TIMEOUT/SERVFAIL). | **Disponibilidade > Velocidade**. <br>🚨 `> 1%`: Score reduzido em 50%. <br>☠️ `> 5%`: Score ZERADO. |
+
+### 🧮 Fórmula do Score
+
+O Score final (0 a 100) é calculado normalizando as latências, onde **0ms = 100 pontos** e **200ms = 0 pontos**.
+
+$$ Score_{final} = \left( Score(P95) \times 0.5 \right) + \left( Score(Mediana) \times 0.5 \right) \times Fator_{Disponibilidade} $$
+
+---
+
+## ⚠️ Limitações Conhecidas (Subhost Mitigation)
+
+| Limitação | Impacto no Teste | Solução Implementada (V3.0) |
 | :--- | :--- | :--- |
-| **P95 (Percentil 95)** | **50%** | **"O Pior Caso Típico"**. Garante que 95% das requisições são rápidas. Ignora os 5% piores (outliers extremos da VM). |
-| **Mediana** | **50%** | **"O Caso Comum"**. Desempenho no dia a dia, ignorando totalmente ruídos. |
-| **Taxa de Erro** | *Multiplicador* | **Disponibilidade**. Se Timeouts > 1%, o score cai pela metade. Se > 5%, o score zera. |
-| **CV** | *Informativo* | **Estabilidade**. Diz se o DNS é consistente ou "bipolar". |
+| **NAT Overhead** | Adiciona ~2-5ms em toda requisição. | Diferenças < 5ms são consideradas irrelevantes (Empate Técnico). |
+| **CPU Steal** | Picos repentinos de latência (Ex: 500ms). | Uso de **P95** ao invés de Média. A média seria contaminada pelo pico, o P95 o ignora. |
+| **Packet Loss** | Falha completa na resolução. | Monitoramento estrito de **Taxa de Erro**. |
 
-### Diagrama de Decisão 3.0
-```mermaid
-graph TD
-    A[Dados Brutos] --> B{Timeout?}
-    B -- Sim --> C[Contabilizar Taxa de Erro]
-    B -- Não --> D[Calcular Mediana]
-    B -- Não --> E[Calcular P95]
-    
-    C --> F{Erro > 5%?}
-    F -- Sim --> G[Score = 0]
-    F -- Não --> H[Fator Disponibilidade]
-    
-    D --> I[Score Mediana (0-100)]
-    E --> J[Score P95 (0-100)]
-    
-    H --> K[Score Final]
-    I --> K
-    J --> K
-    
-    K --> L[Ranking Top 3]
-```
+---
+
+> *Documentação atualizada automaticamente pelo Agente Antigravity.*
