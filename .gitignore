@@ -1,0 +1,40 @@
+# Ambiente virtual
+.venv/
+venv/
+ENV/
+env/
+
+# Arquivos de cache do Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Arquivos de saída
+output/
+
+# Logs
+*.log
+
+# Arquivos temporários do editor
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Python
+__pycache__/
+*.pyc
+
+# Virtual Environment
+.venv/
+venv/
+env/
+
+# Data & Output
+output/
+*.csv
+
+# System
+.DS_Store
+.env
