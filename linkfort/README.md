@@ -66,6 +66,12 @@ Regenera o gráfico com os dados atuais e inicia o servidor.
 ./linkfort
 ```
 
+### 🧹 Limpar Dados
+Apaga todo o histórico de testes e o dashboard, permitindo começar do zero.
+```bash
+./linkfort --reset
+```
+
 ### 🔴 Modo Ao Vivo (Recomendado)
 Executa a coleta em background e inicia o servidor web automaticamente em um único terminal.
 

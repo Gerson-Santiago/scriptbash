@@ -101,6 +101,14 @@ elif [[ "$1" == "--collect" && -n "$2" ]]; then
     chmod +x "$BASE_DIR/monitor_dados.sh"
     "$BASE_DIR/monitor_dados.sh" --count "$2"
 
+elif [[ "$1" == "--reset" || "$1" == "-r" ]]; then
+    # --- MODO RESET ---
+    echo "[3/4] Resetando dados..."
+    rm -f "$BASE_DIR/dados_dns_linkfort.csv"
+    rm -f "$BASE_DIR/dashboard.html"
+    echo "✅ Dados históricos e dashboard apagados com sucesso."
+    echo "   Pronto para iniciar uma nova coleta limpa."
+
 else
     # --- MODO APENAS DASHBOARD ---
     echo "[3/4] Gerando Dashboard com dados existentes..."
