@@ -80,7 +80,9 @@ def calculate_metrics(df):
         results.append({
             'DNS Name': name,
             'IP': ip,
+            'Requests': total_reqs,
             'P95 (ms)': round(p95, 2),
+            'Mean (ms)': round(mean, 2),
             'Median (ms)': round(median, 2),
             'CV (%)': round(cv, 1),
             'Error (%)': round(error_rate, 1),
@@ -411,7 +413,7 @@ def get_js_scripts():
         </script>
     """
 
-def build_html_template(metrics_html, domain_html, chart1_html, chart2_html, top_dns, all_domains):
+def build_html_template(metrics_html, domain_html, chart1_html, chart2_html, chart3_html, top_dns, all_domains, global_stats):
     """
     Constrói um HTML moderno e responsivo com CSS injetado.
     """
@@ -435,10 +437,27 @@ def build_html_template(metrics_html, domain_html, chart1_html, chart2_html, top
             <div class="score-badge" style="background: {score_color}">Score: {row['Score']}</div>
             <div class="stats-grid">
                 <div><span>Median</span><br><strong>{row['Median (ms)']}ms</strong></div>
-                <div><span>P95</span><br><strong>{row['P95 (ms)']}ms</strong></div>
+                <div><span>Mean</span><br><strong>{row['Mean (ms)']}ms</strong></div>
             </div>
         </div>
         """
+    
+    global_stats_html = f"""
+    <div class="card" style="margin-bottom: 30px; border-left: 4px solid {THEME['accent']}; text-align: left; display: flex; justify-content: space-around; align-items: center; flex-wrap: wrap;">
+        <div>
+            <div style="color: {THEME['subtle']}; font-size: 0.9rem;">Total Requests</div>
+            <div style="font-size: 1.5rem; font-weight: bold; color: {THEME['text']}">{global_stats['total_requests']}</div>
+        </div>
+        <div>
+            <div style="color: {THEME['subtle']}; font-size: 0.9rem;">Success Rate</div>
+            <div style="font-size: 1.5rem; font-weight: bold; color: {THEME['success']}">{global_stats['success_rate']}%</div>
+        </div>
+         <div>
+            <div style="color: {THEME['subtle']}; font-size: 0.9rem;">Avg Latency</div>
+             <div style="font-size: 1.5rem; font-weight: bold; color: {THEME['accent']}">{global_stats['avg_latency']} ms</div>
+        </div>
+    </div>
+    """
 
     css = get_css_styles(THEME)
     js = get_js_scripts()
@@ -467,6 +486,8 @@ def build_html_template(metrics_html, domain_html, chart1_html, chart2_html, top
                 <div class="domains-list">🌐 Testados: {domains_str}</div>
             </header>
             
+            {global_stats_html}
+
             <section class="winners-section">
                 {ranking_cards}
             </section>
@@ -489,6 +510,10 @@ def build_html_template(metrics_html, domain_html, chart1_html, chart2_html, top
                 <div class="chart-container">
                     {chart2_html}
                 </div>
+                <!-- Scatter Plot -->
+                <div class="chart-container">
+                     {chart3_html}
+                </div>
             </section>
             
             <footer>
@@ -502,6 +527,18 @@ def build_html_template(metrics_html, domain_html, chart1_html, chart2_html, top
 
 def generate_report(metrics_df, domain_df, raw_df):
     
+    # 0. Global Stats
+    total_requests = len(raw_df)
+    success_requests = len(raw_df[raw_df['status'] == 'OK'])
+    success_rate = round((success_requests / total_requests) * 100, 1) if total_requests > 0 else 0
+    avg_latency = round(raw_df[raw_df['status'] == 'OK']['latency_ms'].mean(), 1) if success_requests > 0 else 0
+    
+    global_stats = {
+        'total_requests': total_requests,
+        'success_rate': success_rate,
+        'avg_latency': avg_latency
+    }
+
     # 1. Gráficos Plotly customizados
     fig_bar = px.bar(metrics_df, x='DNS Name', y='Score', color='Score', 
                      title="Ranking de Performance (Score V3.0)", text='Score',
@@ -513,18 +550,28 @@ def generate_report(metrics_df, domain_df, raw_df):
                      color='dns_name')
     fig_box.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_family="Inter", showlegend=False)
 
+    # Convertendo timestamp numerico para datetime se necessario (assumindo que seja string ou timestamp)
+    # Para o scatter plot, vamos garantir que seja algo plotável.
+    # Se o timestamp for apenas um numero sequencial ou epoch, o Plotly lida bem.
+    fig_scatter = px.scatter(raw_df[raw_df['status']=='OK'], x='timestamp', y='latency_ms', color='dns_name',
+                             title="Latência ao Longo do Tempo (Timeline)",
+                             labels={'timestamp': 'Tempo', 'latency_ms': 'Latência (ms)'})
+    fig_scatter.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_family="Inter")
+
+
     # 2. Gerar HTML dos componentes
     table_metrics_html = metrics_df.to_html(index=False, border=0, classes="")
     table_domain_html = domain_df.to_html(index=False, border=0, classes="")
     
     chart1 = fig_bar.to_html(full_html=False, include_plotlyjs='cdn')
     chart2 = fig_box.to_html(full_html=False, include_plotlyjs='cdn')
+    chart3 = fig_scatter.to_html(full_html=False, include_plotlyjs='cdn')
     
     # Lista de domínios
     all_domains = raw_df['domain'].sort_values().unique()
     
     # 3. Montar página completa
-    full_html = build_html_template(table_metrics_html, table_domain_html, chart1, chart2, metrics_df.head(3), all_domains)
+    full_html = build_html_template(table_metrics_html, table_domain_html, chart1, chart2, chart3, metrics_df.head(3), all_domains, global_stats)
     
     with open(OUTPUT_HTML, 'w', encoding='utf-8') as f:
         f.write(full_html)
