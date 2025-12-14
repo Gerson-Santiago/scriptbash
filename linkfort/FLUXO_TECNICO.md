@@ -51,16 +51,42 @@ Como o ambiente é um "Subhost" (Crostini/VM/Container), temos considerações e
 2.  **Jitter (Variabilidade)**:
     *   VMs sofrem "roubo de CPU" momentâneo pelo Host.
     *   **Impacto**: Picos de latência (outliers) que não são culpa do DNS, mas da VM travando por milissegundos.
-    *   **Solução Atual**: O cálculo de `std` (Desvio Padrão) penaliza instabilidade.
-    *   **Melhoria Proposta**: Usar **Mediana** em vez de Média para o ranking principal, pois a Mediana ignora esses picos artificiais da VM.
+    *   **Solução Avaliada**: Usar Média simples foi descartado. Usar apenas Mediana foi o passo 2.
+    *   **Solução Final (v3.0)**: Usar **P95 (Percentil 95)** e **CV (Coeficiente de Variação)** para ignorar outliers mas penalizar instabilidade real.
 
 3.  **Concorrência de Rede**:
     *   O "Subhost" compartilha a placa de rede com o Host e outras VMs.
     *   **Impacto**: Se o Host estiver fazendo download, a medição do DNS na VM piora.
 
-## Proposta de Novo Algoritmo de Ranking
-Dado o ambiente, o algoritmo atual (Média) pode ser injusto.
-**Novo Score Sugerido:**
-- Base: **Mediana** (mais robusta contra lags da VM).
-- Desempate: **Desvio Padrão**.
-- *Penalidade Severa*: Timeouts (confiabilidade).
+## Algoritmo de Ranking (Analytics 3.0)
+O sistema evoluiu para um motor de decisão profissional ("SLA Grade").
+
+### Métricas Principais
+| Métrica | Peso no Score | Propósito |
+| :--- | :--- | :--- |
+| **P95 (Percentil 95)** | **50%** | **"O Pior Caso Típico"**. Garante que 95% das requisições são rápidas. Ignora os 5% piores (outliers extremos da VM). |
+| **Mediana** | **50%** | **"O Caso Comum"**. Desempenho no dia a dia, ignorando totalmente ruídos. |
+| **Taxa de Erro** | *Multiplicador* | **Disponibilidade**. Se Timeouts > 1%, o score cai pela metade. Se > 5%, o score zera. |
+| **CV** | *Informativo* | **Estabilidade**. Diz se o DNS é consistente ou "bipolar". |
+
+### Diagrama de Decisão 3.0
+```mermaid
+graph TD
+    A[Dados Brutos] --> B{Timeout?}
+    B -- Sim --> C[Contabilizar Taxa de Erro]
+    B -- Não --> D[Calcular Mediana]
+    B -- Não --> E[Calcular P95]
+    
+    C --> F{Erro > 5%?}
+    F -- Sim --> G[Score = 0]
+    F -- Não --> H[Fator Disponibilidade]
+    
+    D --> I[Score Mediana (0-100)]
+    E --> J[Score P95 (0-100)]
+    
+    H --> K[Score Final]
+    I --> K
+    J --> K
+    
+    K --> L[Ranking Top 3]
+```
